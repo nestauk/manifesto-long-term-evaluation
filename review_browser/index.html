@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manifesto Review Browser</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="toolbar">
+  <div class="toolbar-left">
+    <div id="doc-picker">
+      <button id="doc-picker-btn">Select manifesto</button>
+      <div id="doc-picker-dropdown" class="hidden">
+        <div id="doc-picker-parties"></div>
+      </div>
+    </div>
+    <button id="prev-doc" title="Previous document  [">&#9664; Prev</button>
+    <button id="next-doc" title="Next document  ]">Next &#9654;</button>
+  </div>
+  <div class="toolbar-center">
+    <span id="doc-info"></span>
+    <div id="mode-toggle" role="tablist" aria-label="View mode">
+      <button type="button" class="mode-btn active" data-mode="commitments" role="tab" aria-selected="true">Policy commitments</button>
+      <button type="button" class="mode-btn" data-mode="nlp" role="tab" aria-selected="false">Long-term language</button>
+    </div>
+  </div>
+  <div class="toolbar-right">
+    <span class="commitments-only" id="commitment-counter"></span>
+    <label class="toolbar-checkbox commitments-only"><input type="checkbox" id="filter-ambiguous"> Hide ambiguous</label>
+    <label class="toolbar-checkbox commitments-only"><input type="checkbox" id="filter-low-trust"> Hide low trust</label>
+    <span class="nlp-only" id="nlp-doc-counter" hidden></span>
+    <button type="button" class="nlp-only" id="nlp-clear-all" hidden>Clear all</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="source-panel">
+    <div id="source-search">
+      <input type="text" id="source-search-input" placeholder="Search source text..." autocomplete="off">
+      <button id="source-search-prev" class="search-nav-btn" title="Previous match">&#9650;</button>
+      <span id="source-search-info"></span>
+      <button id="source-search-next" class="search-nav-btn" title="Next match">&#9660;</button>
+    </div>
+    <div id="pdf-container" class="hidden">
+      <div id="pdf-status"><span id="pdf-page-info"></span></div>
+      <div id="pdf-scroll"></div>
+    </div>
+    <div id="html-container" class="hidden">
+      <iframe id="html-frame" sandbox="allow-same-origin"></iframe>
+    </div>
+    <div id="text-container" class="hidden">
+      <pre id="text-content"></pre>
+    </div>
+  </div>
+
+  <div id="divider"></div>
+
+  <div id="right-panel">
+    <section id="commitments-panel">
+      <div id="commitments-search">
+        <input type="text" id="search-input" placeholder="Search commitments..." autocomplete="off">
+      </div>
+      <div id="commitments-list"></div>
+    </section>
+    <section id="nlp-panel" hidden>
+      <div id="nlp-panel-header">
+        <span id="nlp-panel-title">Word groups</span>
+        <span id="nlp-panel-hint">toggle to highlight matches in the manifesto</span>
+      </div>
+      <div id="nlp-groups-list"></div>
+      <div id="nlp-panel-footer">
+        Counts are computed from raw manifesto text; the profile in
+        <code>data/nlp_profiles.csv</code> filters out page numbers and tables of
+        contents, so totals there may differ slightly.
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="loading-overlay" class="hidden">
+  <div class="loading-spinner"></div>
+  <div id="loading-message">Loading data...</div>
+</div>
+
+<script type="module">
+  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.9.155/pdf.min.mjs';
+  window.pdfjsLib = pdfjsLib;
+  window.dispatchEvent(new Event('pdfjsReady'));
+</script>
+<script src="app.js"></script>
+</body>
+</html>
