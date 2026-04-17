@@ -32,15 +32,16 @@ review_browser/   a self-contained web app for browsing commitments alongside th
 
 ## Review browser
 
-`review_browser/` is a small static web app with two modes:
+A small static web app with two modes:
 
-- **Policy commitments** (default) - click through each manifesto and inspect every scored commitment next to its supporting quote in the original document.
+- **Policy commitments** - click through each manifesto and inspect every scored commitment next to its supporting quote in the original document.
 - **Long-term language** - toggle the ten word groups that drive `data/nlp_profiles.csv` and see every match highlighted in the source text. Multiple groups can be on at once, each in its own colour.
 
-To run it locally:
+**Hosted**: <https://nestauk.github.io/manifesto-long-term-evaluation/review_browser/>
+
+To run it locally instead:
 
 ```bash
-cd public
 python3 -m http.server 8000
 # then open http://localhost:8000/review_browser/
 ```
