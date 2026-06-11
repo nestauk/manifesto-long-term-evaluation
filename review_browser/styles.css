@@ -22,6 +22,7 @@
   --chip-I: #6b8cce;
   --chip-R: #c4a24d;
   --chip-C: #b06bba;
+  --chip-CC: #d65f5f;
 }
 
 html, body {
@@ -460,11 +461,13 @@ html, body {
 .score-chip[data-dim="I"] { background: var(--chip-I); }
 .score-chip[data-dim="R"] { background: var(--chip-R); }
 .score-chip[data-dim="C"] { background: var(--chip-C); }
+.score-chip[data-dim="CC"] { background: var(--chip-CC); }
 
 .score-chip[data-val="0"] { opacity: 0.25; }
 .score-chip[data-val="1"] { opacity: 0.55; }
 .score-chip[data-val="2"] { opacity: 0.8; }
 .score-chip[data-val="3"] { opacity: 1.0; }
+.score-chip[data-val="4"] { opacity: 1.0; }
 
 .confidence-tag {
   font-size: 10px;
@@ -528,6 +531,7 @@ html, body {
 .rationale-dim[data-dim="I"] { color: var(--chip-I); }
 .rationale-dim[data-dim="R"] { color: var(--chip-R); }
 .rationale-dim[data-dim="C"] { color: var(--chip-C); }
+.rationale-dim[data-dim="CC"] { color: var(--chip-CC); }
 
 .quote-text {
   font-style: italic;

@@ -28,6 +28,7 @@ SCORE_DIMS = [
     "intangible_investment",
     "risk_resilience",
     "current_consumption",
+    "constitutional_change",
 ]
 DIM_SHORT = {
     "prevention": "P",
@@ -35,6 +36,7 @@ DIM_SHORT = {
     "intangible_investment": "I",
     "risk_resilience": "R",
     "current_consumption": "C",
+    "constitutional_change": "CC",
 }
 DOC_REQUIRED_COLUMNS = {
     "doc_id",

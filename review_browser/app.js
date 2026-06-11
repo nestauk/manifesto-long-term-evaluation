@@ -1,8 +1,8 @@
 // Manifesto Commitment Review Browser
 // Single-file app: loads data.json, renders two-panel layout
 
-const DIM_LABELS = { P: 'Prevention', T: 'Tangible', I: 'Intangible', R: 'Resilience', C: 'Consumption' };
-const DIMS = ['P', 'T', 'I', 'R', 'C'];
+const DIM_LABELS = { P: 'Prevention', T: 'Tangible', I: 'Intangible', R: 'Resilience', C: 'Consumption', CC: 'Constitutional' };
+const DIMS = ['P', 'T', 'I', 'R', 'C', 'CC'];
 
 let DATA = null;
 let currentDocIndex = -1;
