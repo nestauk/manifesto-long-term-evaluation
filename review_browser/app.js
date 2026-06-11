@@ -84,6 +84,24 @@ function buildDocSelect() {
       const dropdownRect = document.getElementById('doc-picker-dropdown').getBoundingClientRect();
       flyout.style.left = dropdownRect.right + 'px';
     });
+    // Touch devices have no hover: tapping the party row toggles its flyout.
+    // Checked at tap time so DevTools emulation / convertible laptops work.
+    row.addEventListener('click', (e) => {
+      if (!window.matchMedia('(hover: none)').matches) return;
+      e.stopPropagation();
+      const wasVisible = flyout.classList.contains('visible');
+      document.querySelectorAll('.picker-flyout.visible').forEach(f => f.classList.remove('visible'));
+      if (wasVisible) return;
+      const dropdownRect = document.getElementById('doc-picker-dropdown').getBoundingClientRect();
+      if (window.matchMedia('(max-width: 720px)').matches) {
+        // CSS pins left/right; align with the dropdown vertically
+        flyout.style.top = dropdownRect.top + 'px';
+        flyout.style.maxHeight = (window.innerHeight - dropdownRect.top - 8) + 'px';
+      } else {
+        flyout.style.left = dropdownRect.right + 'px';
+      }
+      flyout.classList.add('visible');
+    });
     for (const { doc, index } of entries) {
       const yearRow = document.createElement('div');
       yearRow.className = 'picker-item picker-year';
@@ -107,7 +125,16 @@ function buildDocSelect() {
   const dropdown = document.getElementById('doc-picker-dropdown');
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    dropdown.classList.toggle('hidden');
+    const nowHidden = dropdown.classList.toggle('hidden');
+    if (!nowHidden && window.matchMedia('(max-width: 720px)').matches) {
+      // Wrapped toolbar height varies, so position below it dynamically
+      const toolbarRect = document.getElementById('toolbar').getBoundingClientRect();
+      dropdown.style.top = (toolbarRect.bottom + 4) + 'px';
+      dropdown.style.maxHeight = (window.innerHeight - toolbarRect.bottom - 12) + 'px';
+    } else {
+      dropdown.style.top = '';
+      dropdown.style.maxHeight = '';
+    }
   });
 
   document.addEventListener('click', (e) => {
@@ -119,6 +146,7 @@ function buildDocSelect() {
 
 function closePicker() {
   document.getElementById('doc-picker-dropdown').classList.add('hidden');
+  document.querySelectorAll('.picker-flyout.visible').forEach(f => f.classList.remove('visible'));
 }
 
 function updatePickerButton() {
@@ -221,6 +249,9 @@ function renderCommitments() {
         // Select and expand
         document.querySelectorAll('.commitment-card.expanded').forEach(c => c.classList.remove('expanded'));
         card.classList.add('expanded');
+        // On mobile, show the source panel BEFORE selecting: scroll-to-highlight
+        // is a no-op while the panel is display:none
+        setMobileView('source');
         selectCommitment(i);
       }
     });
@@ -872,6 +903,26 @@ function setupDivider() {
   document.addEventListener('mouseup', () => { dragging = false; });
 }
 
+// ── Mobile Source / List view switcher ──
+// data-mobile-view only has effect inside the max-width media query,
+// so calling this on desktop is a no-op visually.
+
+function setMobileView(view) {
+  if (view !== 'source' && view !== 'list') return;
+  document.getElementById('main').dataset.mobileView = view;
+  document.querySelectorAll('#view-switcher .view-btn').forEach(btn => {
+    const active = btn.dataset.view === view;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+}
+
+function setupViewSwitcher() {
+  document.querySelectorAll('#view-switcher .view-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMobileView(btn.dataset.view));
+  });
+}
+
 // ── NLP (Long-term Language) mode ──
 
 const NLP_HITS_PATH = 'nlp_hits.json';
@@ -963,6 +1014,9 @@ function renderNlpPanel() {
     cb.addEventListener('change', () => {
       if (cb.checked) selectedGroups.add(group.key);
       else selectedGroups.delete(group.key);
+      // On mobile, show the source panel before drawing so PDF overlay
+      // positions are measurable (display:none panels have zero layout)
+      if (cb.checked) setMobileView('source');
       redrawNlpHighlights();
       updateNlpDocCounter();
     });
@@ -1757,6 +1811,7 @@ function escHtml(str) {
 // ── Init ──
 
 setupDivider();
+setupViewSwitcher();
 setupKeyboard();
 setupDocNav();
 setupFilters();

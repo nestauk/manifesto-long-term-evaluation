@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Manifesto Review Browser</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,6 +26,10 @@
       <button type="button" class="mode-btn active" data-mode="commitments" role="tab" aria-selected="true">Policy commitments</button>
       <button type="button" class="mode-btn" data-mode="nlp" role="tab" aria-selected="false">Long-term language</button>
     </div>
+    <div id="view-switcher" role="tablist" aria-label="Panel view">
+      <button type="button" class="view-btn active" data-view="source" role="tab" aria-selected="true">Source</button>
+      <button type="button" class="view-btn" data-view="list" role="tab" aria-selected="false">List</button>
+    </div>
   </div>
   <div class="toolbar-right">
     <span class="commitments-only" id="commitment-counter"></span>
@@ -35,7 +40,7 @@
   </div>
 </div>
 
-<div id="main">
+<div id="main" data-mobile-view="source">
   <div id="source-panel">
     <div id="source-search">
       <input type="text" id="source-search-input" placeholder="Search source text..." autocomplete="off">

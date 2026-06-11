@@ -59,14 +59,16 @@ html, body {
 .toolbar-checkbox input { cursor: pointer; }
 .commitments-only[hidden], .nlp-only[hidden] { display: none !important; }
 
-#mode-toggle {
+#mode-toggle,
+#view-switcher {
   display: inline-flex;
   border: 1px solid var(--border);
   border-radius: 5px;
   overflow: hidden;
   flex-shrink: 0;
 }
-#mode-toggle .mode-btn {
+#mode-toggle .mode-btn,
+#view-switcher .view-btn {
   padding: 4px 10px;
   font-size: 12px;
   background: var(--bg-card);
@@ -75,12 +77,18 @@ html, body {
   border-radius: 0;
   cursor: pointer;
 }
-#mode-toggle .mode-btn + .mode-btn { border-left: 1px solid var(--border); }
-#mode-toggle .mode-btn.active {
+#mode-toggle .mode-btn + .mode-btn,
+#view-switcher .view-btn + .view-btn { border-left: 1px solid var(--border); }
+#mode-toggle .mode-btn.active,
+#view-switcher .view-btn.active {
   background: var(--accent);
   color: #fff;
 }
-#mode-toggle .mode-btn:hover:not(.active) { background: var(--bg-card-active); color: var(--text); }
+#mode-toggle .mode-btn:hover:not(.active),
+#view-switcher .view-btn:hover:not(.active) { background: var(--bg-card-active); color: var(--text); }
+
+/* Mobile-only view switcher: hidden on desktop, shown in the mobile media query */
+#view-switcher { display: none; }
 
 #toolbar button {
   padding: 4px 10px;
@@ -672,3 +680,70 @@ html, body {
 ::-webkit-scrollbar-track { background: var(--bg-panel); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #3a4a6c; }
+
+/* Mobile (single column, tabbed Source / List) */
+@media (max-width: 720px) {
+  /* Body becomes a flex column so #main fills whatever the wrapped
+     toolbar leaves over; dvh avoids mobile URL-bar clipping. */
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 6px;
+    gap: 8px;
+    padding: 6px 10px;
+  }
+  .toolbar-left, .toolbar-center, .toolbar-right {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .toolbar-right { font-size: 11px; }
+  /* The picker button already shows party + year */
+  #doc-info { display: none; }
+
+  /* Bigger tap targets */
+  #toolbar button, .mode-btn, .view-btn { min-height: 36px; }
+  #doc-picker { flex: 1; min-width: 0; }
+  #doc-picker-btn { width: 100%; min-width: 0; }
+  #view-switcher { display: inline-flex; }
+
+  /* Single column; one panel visible at a time */
+  #main {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    flex-direction: column;
+  }
+  #main[data-mobile-view="source"] #right-panel { display: none; }
+  #main[data-mobile-view="list"] #source-panel { display: none; }
+
+  /* !important beats any inline width left by desktop divider drags */
+  #source-panel, #right-panel {
+    width: 100% !important;
+    min-width: 0;
+    flex: 1 1 0;
+    min-height: 0;
+    border-right: none;
+  }
+  #divider { display: none; }
+
+  /* Document picker fills the viewport width; JS sets top/max-height */
+  #doc-picker-dropdown { left: 8px; right: 8px; }
+  .picker-flyout {
+    left: 8px !important;
+    right: 8px;
+    min-width: 0;
+  }
+  .picker-title { white-space: normal; }
+
+  #source-search-info { min-width: 0; }
+}
