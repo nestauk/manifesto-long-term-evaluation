@@ -2,12 +2,12 @@
 
 How much do UK party manifestos talk about the long term? This repository contains the data, methods, and results from Nesta's analysis of 108 UK party manifestos spanning 1945 to 2024.
 
-The project has two parts. First, we search each manifesto for words and phrases associated with long-term thinking and produce a set of scores for each document. Second, we use a large language model to pull out individual policy commitments from each manifesto and classify them against a policy typology. The full methodology is described in [`methods/pipeline.md`](methods/pipeline.md).
+The project has two parts. First, we count words and phrases associated with long-term (and short-term) thinking in each manifesto, reported as mentions per 1,000 words. Second, we use a large language model to pull out individual policy commitments from each manifesto and classify them against a policy typology. The full methodology is described in [`methods/pipeline.md`](methods/pipeline.md).
 
 ## Key outputs
 
 - **[`data/commitments.csv`](data/commitments.csv)** - 23,026 individual policy commitments extracted from the corpus, each scored across six policy dimensions (prevention, tangible investment, intangible investment, risk/resilience, current consumption, constitutional change) with supporting quotes and confidence signals.
-- **[`data/nlp_profiles.csv`](data/nlp_profiles.csv)** - a profile for each manifesto across six dimensions of long-term language.
+- **[`data/nlp_profiles.csv`](data/nlp_profiles.csv)** - word-count language profiles for each manifesto: hits and mentions per 1,000 words across ten curated word groups.
 - **[`figures/`](figures/)** - charts covering party rankings, historical trends, and a 2024 manifesto scorecard.
 - **[`manifestos/`](manifestos/)** - the source corpus: 108 party manifestos as PDFs, HTML, and plain text.
 
@@ -17,7 +17,7 @@ The project has two parts. First, we search each manifesto for words and phrases
 manifestos/       source corpus (PDF, HTML, txt)
 data/
   commitments.csv       scored policy commitments (headline dataset)
-  nlp_profiles.csv      long-term-language profiles (headline dataset)
+  nlp_profiles.csv      word-count language profiles (per-1,000-word densities)
   documents.csv         per-document metadata + extracted full text
   catalog.csv           corpus provenance (source URLs, retrieval method, quality)
   catalog-missing.csv   manifestos listed in the Manifesto Project database that we could not source
