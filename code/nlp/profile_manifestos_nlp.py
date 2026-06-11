@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""Profile manifesto full text with transparent word-count densities.
+
+For each document, count case-insensitive whole-word matches against a set of
+manually curated lexicons and report raw hits plus mentions per 1,000 words.
+No weighting, no composite scores: every number in the output is either a
+count or a count divided by document length.
+"""
 from __future__ import annotations
 
 import argparse
@@ -14,6 +21,7 @@ ANALYSIS_DIR = ROOT / "analysis"
 DOCUMENTS_CSV = ANALYSIS_DIR / "documents.csv"
 OUTPUT_DIR = ANALYSIS_DIR / "nlp"
 DEFAULT_OUTPUT_CSV = OUTPUT_DIR / "manifesto_nlp_profiles.csv"
+DEFAULT_OUTPUT_TSV = OUTPUT_DIR / "manifesto_nlp_profiles.tsv"
 DEFAULT_CHUNK_TSV = OUTPUT_DIR / "manifesto_nlp_chunks.tsv"
 DEFAULT_SKIPPED_CSV = OUTPUT_DIR / "manifesto_nlp_skipped.csv"
 
@@ -220,6 +228,22 @@ COMPILED_PATTERNS = {
     "present_urgency": compile_patterns(PRESENT_URGENCY_PATTERNS),
 }
 
+# Groups reported in the document-level output. future_tense and
+# present_urgency stay available in COMPILED_PATTERNS for the review browser
+# but are subsets of other groups, so they are not reported separately.
+REPORTED_GROUPS = [
+    "long_term",
+    "short_term",
+    "definite_commitment",
+    "aspirational",
+    "prevention",
+    "investment",
+    "resilience",
+    "relief",
+    "intergenerational",
+    "institutional",
+]
+
 YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
 WHITESPACE_RE = re.compile(r"\s+")
 PAGE_NUMBER_RE = re.compile(r"^\d+$")
@@ -229,6 +253,20 @@ WAYBACK_WRAPPER_MARKERS = (
     "ask the publishers to restore access to 500,000+ books",
     "hamburger icon",
 )
+ERROR_PAGE_MARKERS = (
+    "this page is not available",
+    "page not found",
+    "404 not found",
+)
+# The shortest genuine manifesto in the corpus is ~1,800 words, so anything
+# far below that is a fetch artefact rather than a real document.
+MIN_PROFILE_WORDS = 500
+# A line that recurs this many times in one document is page furniture
+# (running headers, slogans, bullet glyphs) left behind by PDF/HTML
+# extraction, not prose - e.g. the 2024 Conservative page header
+# "Clear Plan. Bold Action. Secure Future." appears 219 times. Such lines
+# are kept once and the repeats dropped.
+BOILERPLATE_REPEAT_THRESHOLD = 4
 
 
 @dataclass
@@ -236,7 +274,6 @@ class ChunkResult:
     chunk_index: int
     text: str
     word_count: int
-    is_salient: bool
     counts: dict[str, int]
 
 
@@ -260,11 +297,41 @@ def detect_text_quality_flag(text: str) -> str:
     lowered = WHITESPACE_RE.sub(" ", text[:4000]).strip().lower()
     if all(marker in lowered for marker in WAYBACK_WRAPPER_MARKERS):
         return "archive_wrapper_page"
+    if any(marker in lowered for marker in ERROR_PAGE_MARKERS):
+        return "error_page"
+    if len(text.split()) < MIN_PROFILE_WORDS:
+        return "too_short"
     return ""
+
+
+def strip_repeated_lines(text: str) -> str:
+    """Drop page furniture: any line whose trimmed text recurs 4+ times.
+
+    PDF and HTML extraction repeats running headers, slogans, bullet glyphs,
+    and footer URLs on every page. The first occurrence is kept so a
+    document's actual slogan still counts once.
+    """
+    lines = text.split("\n")
+    occurrences: dict[str, int] = {}
+    for line in lines:
+        key = WHITESPACE_RE.sub(" ", line).strip()
+        if key:
+            occurrences[key] = occurrences.get(key, 0) + 1
+    seen: set[str] = set()
+    kept: list[str] = []
+    for line in lines:
+        key = WHITESPACE_RE.sub(" ", line).strip()
+        if key and occurrences[key] >= BOILERPLATE_REPEAT_THRESHOLD:
+            if key in seen:
+                continue
+            seen.add(key)
+        kept.append(line)
+    return "\n".join(kept)
 
 
 def split_into_chunks(text: str) -> list[str]:
     text = text.replace("\r\n", "\n").replace("\r", "\n").replace("\x0c", "\n\n")
+    text = strip_repeated_lines(text)
     raw_chunks = re.split(r"\n\s*\n+", text)
     chunks: list[str] = []
     for raw in raw_chunks:
@@ -284,47 +351,20 @@ def split_into_chunks(text: str) -> list[str]:
     return chunks
 
 
-def is_salient_chunk(text: str) -> bool:
-    word_count = len(text.split())
-    if text.startswith("§"):
-        return True
-    if re.match(r"^\d+\.\s", text):
-        return True
-    if word_count <= 12 and text.count(".") <= 1 and text.count(",") <= 1:
-        return True
-    if word_count <= 10 and text == text.title():
-        return True
-    return False
-
-
 def count_matches(text: str, patterns: list[re.Pattern[str]]) -> int:
     return sum(len(pattern.findall(text)) for pattern in patterns)
 
 
 def analyze_chunk(text: str, chunk_index: int) -> ChunkResult:
-    word_count = len(text.split())
-    salient = is_salient_chunk(text)
-    counts = {name: count_matches(text, patterns) for name, patterns in COMPILED_PATTERNS.items()}
+    counts = {
+        name: count_matches(text, COMPILED_PATTERNS[name]) for name in REPORTED_GROUPS
+    }
     return ChunkResult(
         chunk_index=chunk_index,
         text=text,
-        word_count=word_count,
-        is_salient=salient,
+        word_count=len(text.split()),
         counts=counts,
     )
-
-
-def safe_ratio(numerator: float, denominator: float) -> float:
-    if denominator <= 0:
-        return 0.0
-    return numerator / denominator
-
-
-def balance_score(positive: float, negative: float) -> float:
-    total = positive + negative
-    if total <= 0:
-        return 50.0
-    return round(100.0 * positive / total, 1)
 
 
 def density_per_1000(count: float, word_count: int) -> float:
@@ -333,47 +373,17 @@ def density_per_1000(count: float, word_count: int) -> float:
     return round(count * 1000.0 / word_count, 3)
 
 
-def chunk_signal(
-    chunk: ChunkResult,
-    positive_keys: list[str],
-    negative_keys: list[str] | None = None,
-) -> float:
-    negative_keys = negative_keys or []
-    positive = sum(chunk.counts.get(key, 0) for key in positive_keys)
-    negative = sum(chunk.counts.get(key, 0) for key in negative_keys)
-    return positive - negative
-
-
-def select_example(
-    chunks: list[ChunkResult],
-    positive_keys: list[str],
-    negative_keys: list[str] | None = None,
-    mode: str = "positive",
-) -> str:
+def select_example(chunks: list[ChunkResult], group: str) -> str:
     best_chunk: ChunkResult | None = None
-    best_score: float | None = None
+    best_count = 0
     for chunk in chunks:
-        score = chunk_signal(chunk, positive_keys, negative_keys)
-        if mode == "positive":
-            candidate_ok = score > 0
-            comparable = score
-        else:
-            candidate_ok = score < 0
-            comparable = -score
-        if not candidate_ok:
-            continue
-        if best_score is None or comparable > best_score:
-            best_score = comparable
+        count = chunk.counts.get(group, 0)
+        if count > best_count:
+            best_count = count
             best_chunk = chunk
     if best_chunk is None:
         return ""
     return f"chunk {best_chunk.chunk_index}: {snippet(best_chunk.text)}"
-
-
-def density_score(count: float, word_count: int, factor: float) -> float:
-    if word_count <= 0:
-        return 0.0
-    return round(min(100.0, factor * count * 1000.0 / word_count), 1)
 
 
 def aggregate_document(
@@ -381,35 +391,15 @@ def aggregate_document(
     text: str,
 ) -> tuple[dict[str, object], list[dict[str, object]]]:
     chunks = split_into_chunks(text)
-
     chunk_results = [analyze_chunk(chunk, i) for i, chunk in enumerate(chunks, start=1)]
     word_count = sum(chunk.word_count for chunk in chunk_results)
-    salient_chunk_count = sum(1 for chunk in chunk_results if chunk.is_salient)
 
-    totals: dict[str, float] = {}
+    totals: dict[str, int] = {group: 0 for group in REPORTED_GROUPS}
     for chunk in chunk_results:
-        for key, value in chunk.counts.items():
-            totals[key] = totals.get(key, 0.0) + value
+        for group, value in chunk.counts.items():
+            totals[group] += value
 
-    # Balance scores: 100 * positive / (positive + negative)
-    temporal_score = balance_score(totals.get("long_term", 0.0), totals.get("short_term", 0.0))
-    commitment_score = balance_score(totals.get("definite_commitment", 0.0), totals.get("aspirational", 0.0))
-    investment_score = balance_score(totals.get("investment", 0.0), totals.get("relief", 0.0))
-
-    # Density scores: min(100, factor * hits_per_1000_words)
-    resilience_score = density_score(
-        totals.get("prevention", 0.0) + totals.get("resilience", 0.0), word_count, 20,
-    )
-    intergenerational_score = density_score(totals.get("intergenerational", 0.0), word_count, 30)
-    institutional_score = density_score(totals.get("institutional", 0.0), word_count, 40)
-
-    headline_score = round(
-        (temporal_score + commitment_score + investment_score
-         + resilience_score + intergenerational_score + institutional_score) / 6.0,
-        1,
-    )
-
-    profile = {
+    profile: dict[str, object] = {
         "doc_id": row["doc_id"],
         "party_slug": row["party_slug"],
         "party_name": row["party_name"],
@@ -418,103 +408,27 @@ def aggregate_document(
         "text_path": row["text_path"],
         "word_count": word_count,
         "chunk_count": len(chunk_results),
-        "salient_chunk_count": salient_chunk_count,
-        "salient_chunk_share": round(safe_ratio(salient_chunk_count, len(chunk_results)), 3),
-        "long_term_hits": int(totals.get("long_term", 0.0)),
-        "short_term_hits": int(totals.get("short_term", 0.0)),
-        "definite_commitment_hits": int(totals.get("definite_commitment", 0.0)),
-        "aspirational_hits": int(totals.get("aspirational", 0.0)),
-        "future_tense_hits": int(totals.get("future_tense", 0.0)),
-        "present_urgency_hits": int(totals.get("present_urgency", 0.0)),
-        "prevention_hits": int(totals.get("prevention", 0.0)),
-        "investment_hits": int(totals.get("investment", 0.0)),
-        "resilience_hits": int(totals.get("resilience", 0.0)),
-        "relief_hits": int(totals.get("relief", 0.0)),
-        "intergenerational_hits": int(totals.get("intergenerational", 0.0)),
-        "institutional_hits": int(totals.get("institutional", 0.0)),
-        "temporal_orientation_score": temporal_score,
-        "commitment_strength_score": commitment_score,
-        "investment_stewardship_score": investment_score,
-        "risk_resilience_score": resilience_score,
-        "intergenerational_reference_score": intergenerational_score,
-        "institutional_commitment_score": institutional_score,
-        "headline_long_termism_score": headline_score,
-        "temporal_positive_example": select_example(
-            chunk_results,
-            ["long_term"],
-            negative_keys=["short_term"],
-            mode="positive",
-        ),
-        "temporal_negative_example": select_example(
-            chunk_results,
-            ["long_term"],
-            negative_keys=["short_term"],
-            mode="negative",
-        ),
-        "commitment_positive_example": select_example(
-            chunk_results,
-            ["definite_commitment"],
-            negative_keys=["aspirational"],
-            mode="positive",
-        ),
-        "commitment_negative_example": select_example(
-            chunk_results,
-            ["definite_commitment"],
-            negative_keys=["aspirational"],
-            mode="negative",
-        ),
-        "investment_positive_example": select_example(
-            chunk_results,
-            ["investment"],
-            negative_keys=["relief"],
-            mode="positive",
-        ),
-        "investment_negative_example": select_example(
-            chunk_results,
-            ["investment"],
-            negative_keys=["relief"],
-            mode="negative",
-        ),
-        "resilience_positive_example": select_example(
-            chunk_results,
-            ["prevention", "resilience"],
-            mode="positive",
-        ),
-        "resilience_negative_example": select_example(
-            chunk_results,
-            ["prevention", "resilience"],
-            mode="negative",
-        ),
-        "institutional_positive_example": select_example(
-            chunk_results,
-            ["institutional"],
-            mode="positive",
-        ),
     }
+    for group in REPORTED_GROUPS:
+        profile[f"{group}_hits"] = totals[group]
+    for group in REPORTED_GROUPS:
+        profile[f"{group}_per_1000_words"] = density_per_1000(totals[group], word_count)
+    for group in REPORTED_GROUPS:
+        profile[f"{group}_example"] = select_example(chunk_results, group)
 
     chunk_rows: list[dict[str, object]] = []
     for chunk in chunk_results:
-        chunk_rows.append(
-            {
-                "doc_id": row["doc_id"],
-                "party_slug": row["party_slug"],
-                "year": row["year"],
-                "chunk_index": chunk.chunk_index,
-                "word_count": chunk.word_count,
-                "is_salient": int(chunk.is_salient),
-                "long_term_hits": chunk.counts.get("long_term", 0),
-                "short_term_hits": chunk.counts.get("short_term", 0),
-                "definite_commitment_hits": chunk.counts.get("definite_commitment", 0),
-                "aspirational_hits": chunk.counts.get("aspirational", 0),
-                "prevention_hits": chunk.counts.get("prevention", 0),
-                "investment_hits": chunk.counts.get("investment", 0),
-                "resilience_hits": chunk.counts.get("resilience", 0),
-                "relief_hits": chunk.counts.get("relief", 0),
-                "intergenerational_hits": chunk.counts.get("intergenerational", 0),
-                "institutional_hits": chunk.counts.get("institutional", 0),
-                "text": chunk.text,
-            }
-        )
+        chunk_row: dict[str, object] = {
+            "doc_id": row["doc_id"],
+            "party_slug": row["party_slug"],
+            "year": row["year"],
+            "chunk_index": chunk.chunk_index,
+            "word_count": chunk.word_count,
+        }
+        for group in REPORTED_GROUPS:
+            chunk_row[f"{group}_hits"] = chunk.counts.get(group, 0)
+        chunk_row["text"] = chunk.text
+        chunk_rows.append(chunk_row)
 
     return profile, chunk_rows
 
@@ -535,7 +449,7 @@ def build_skipped_row(row: dict[str, str], text: str, text_quality_flag: str) ->
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Profile manifesto full text with document-level NLP heuristics."
+        description="Profile manifesto full text with word-count densities."
     )
     parser.add_argument(
         "--documents-csv",
@@ -548,6 +462,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=DEFAULT_OUTPUT_CSV,
         help="Where to write manifesto-level profile rows",
+    )
+    parser.add_argument(
+        "--output-tsv",
+        type=Path,
+        default=DEFAULT_OUTPUT_TSV,
+        help="Where to write manifesto-level profile rows as TSV",
     )
     parser.add_argument(
         "--chunk-output",
@@ -612,6 +532,11 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(profile_rows)
 
+    with args.output_tsv.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(profile_rows[0].keys()), delimiter="\t")
+        writer.writeheader()
+        writer.writerows(profile_rows)
+
     with args.chunk_output.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(chunk_rows[0].keys()), delimiter="\t")
         writer.writeheader()
@@ -637,6 +562,7 @@ def main() -> None:
     if skipped_rows:
         print(f"skipped {len(skipped_rows)} manifestos with invalid text")
     print(args.output_csv)
+    print(args.output_tsv)
     print(args.chunk_output)
     print(args.skipped_output)
 

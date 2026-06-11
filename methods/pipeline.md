@@ -98,16 +98,16 @@ All LLM prompts are stored as versioned text files under `prompts/`. The scorer 
 
 # NLP profiling
 
-Separately from the extraction and scoring pipeline, we run a deterministic lexicon-based analysis across the full corpus. This profiles each manifesto document against several dimensions relevant to long-term policy orientation:
+Separately from the extraction and scoring pipeline, we run a deterministic word-count analysis across the full corpus. Each manifesto is profiled against ten manually curated word groups relevant to long-term policy orientation:
 
-- **Temporal orientation**  -  balance of long-term vs short-term language
-- **Commitment strength**  -  definite commitments vs aspirational language
-- **Investment and stewardship**  -  references to investment, infrastructure, prevention
-- **Risk and resilience**  -  resilience, security, and risk language
-- **Intergenerational references**  -  children, future generations, legacy
-- **Institutional commitment**  -  binding frameworks, targets, commissions
+- **Long-term / short-term**  -  e.g. "long-term", "future generations" vs "immediately", "this year"
+- **Definite commitment / aspirational**  -  "we will", "guarantee" vs "aim to", "would", "may"
+- **Investment / immediate relief**  -  "infrastructure", "R&D" vs "boost", "cut taxes"
+- **Prevention and resilience**  -  "early intervention", "safeguard", "preparedness"
+- **Intergenerational**  -  "children", "future generations", "legacy"
+- **Institutional**  -  "statutory", "binding", "independent commission", "targets"
 
-The profiler uses conservative, manually curated regex lexicons  -  no LLM is involved. It produces a document-level summary with hit counts, density scores, and composite scores for each dimension. See [`analysis/nlp/`](../analysis/nlp/) for the output and detailed column descriptions.
+The method is deliberately simple and transparent: case-insensitive whole-word matching, with each group reported as a raw hit count and as mentions per 1,000 words. Page furniture is stripped first: any line that recurs four or more times in a document (running headers, slogans, bullet glyphs left by PDF/HTML extraction) is counted once. There are no weights or composite scores, and no LLM is involved. The word lists were reviewed against 1950s-60s manifestos so older phrasing ("stop-go", "reconstruction", "national plan") is credited.
 
 
 
