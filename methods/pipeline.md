@@ -70,6 +70,8 @@ We score the analysis-ready commitments against the policy typology using a vers
 
 Scores are accompanied by confidence, ambiguity, and trust signals. Ambiguous rows are retained in the data but also separated into review outputs for human checking.
 
+When summarising scores into the per-manifesto rubric figures, we treat a dimension as a central feature of a commitment when it scores 3 or 4 (out of 4), and report the share of a manifesto's commitments that clear that bar on each dimension. We exclude any manifesto with fewer than 25 scored commitments from those figures, since a handful of commitments gives an unstable share (this drops, for example, Sinn Féin's 6-commitment 2019 manifesto).
+
 ### 12. Quality assurance
 
 We generate targeted review subsets and QA packs so that uncertain, unusual, and high-leverage rows can be audited systematically.
