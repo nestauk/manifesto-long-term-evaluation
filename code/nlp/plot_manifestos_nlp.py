@@ -6,25 +6,26 @@ There are no composite scores or weights anywhere: the only transformation of
 the underlying counts is division by document length, and decade or party
 averaging where labelled.
 """
+
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 CACHE_DIR = Path(__file__).resolve().parents[2] / "outputs" / ".cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 MPLCONFIGDIR = CACHE_DIR / "mplconfig"
 MPLCONFIGDIR.mkdir(parents=True, exist_ok=True)
-import os
-
 os.environ.setdefault("MPLCONFIGDIR", str(MPLCONFIGDIR))
 
-import matplotlib
+# matplotlib reads MPLCONFIGDIR at import time, so these imports come after it is set.
+import matplotlib  # noqa: E402
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_INPUT = ROOT / "data" / "nlp_profiles.csv"
@@ -79,9 +80,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input-csv", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--commitments-csv", type=Path, default=DEFAULT_COMMITMENTS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument(
-        "--government-periods", type=Path, default=DEFAULT_GOVERNMENT_PERIODS
-    )
+    parser.add_argument("--government-periods", type=Path, default=DEFAULT_GOVERNMENT_PERIODS)
     return parser.parse_args()
 
 
@@ -156,23 +155,56 @@ def chart_decade_trends(df: pd.DataFrame, output_dir: Path) -> None:
     )
 
     ax = axes[0]
-    ax.plot(grouped.index, grouped["long_term_per_1000_words"], color=TEAL,
-            linewidth=3, marker="o", markersize=6, label="Long-term markers")
-    ax.plot(grouped.index, grouped["short_term_per_1000_words"], color=ORANGE,
-            linewidth=3, marker="o", markersize=6, label="Short-term markers")
+    ax.plot(
+        grouped.index,
+        grouped["long_term_per_1000_words"],
+        color=TEAL,
+        linewidth=3,
+        marker="o",
+        markersize=6,
+        label="Long-term markers",
+    )
+    ax.plot(
+        grouped.index,
+        grouped["short_term_per_1000_words"],
+        color=ORANGE,
+        linewidth=3,
+        marker="o",
+        markersize=6,
+        label="Short-term markers",
+    )
     ax.set_title("Long-term versus short-term language", loc="left", pad=12)
     for decade, count in counts.items():
-        ax.annotate(f"n={count}", (decade, grouped.loc[decade, "long_term_per_1000_words"]),
-                    textcoords="offset points", xytext=(0, 8), ha="center",
-                    fontsize=7.5, color="#5d6c7a")
+        ax.annotate(
+            f"n={count}",
+            (decade, grouped.loc[decade, "long_term_per_1000_words"]),
+            textcoords="offset points",
+            xytext=(0, 8),
+            ha="center",
+            fontsize=7.5,
+            color="#5d6c7a",
+        )
     ax.legend(frameon=False, loc="upper left")
 
     ax = axes[1]
-    ax.plot(grouped.index, grouped["definite_commitment_per_1000_words"],
-            color=GROUP_COLOURS["definite_commitment"], linewidth=3, marker="o",
-            markersize=6, label="Definite pledges (“we will …”)")
-    ax.plot(grouped.index, grouped["aspirational_per_1000_words"], color="#8a8157",
-            linewidth=3, marker="o", markersize=6, label="Aspirational wording")
+    ax.plot(
+        grouped.index,
+        grouped["definite_commitment_per_1000_words"],
+        color=GROUP_COLOURS["definite_commitment"],
+        linewidth=3,
+        marker="o",
+        markersize=6,
+        label="Definite pledges (“we will …”)",
+    )
+    ax.plot(
+        grouped.index,
+        grouped["aspirational_per_1000_words"],
+        color="#8a8157",
+        linewidth=3,
+        marker="o",
+        markersize=6,
+        label="Aspirational wording",
+    )
     ax.set_title("Definite versus aspirational wording", loc="left", pad=12)
     ax.legend(frameon=False, loc="upper left")
 
@@ -222,8 +254,15 @@ def chart_two_party_year(df: pd.DataFrame, periods: pd.DataFrame, output_dir: Pa
     draw_government_bands(ax, periods)
     for party, colour in [("labour", LABOUR_COLOUR), ("conservative", CONSERVATIVE_COLOUR)]:
         p = sub[sub["party_slug"] == party].sort_values("year")
-        ax.plot(p["year"], p["long_term_per_1000_words"], color=colour, linewidth=2.5,
-                marker="o", markersize=4.5, label=PARTY_LABELS[party])
+        ax.plot(
+            p["year"],
+            p["long_term_per_1000_words"],
+            color=colour,
+            linewidth=2.5,
+            marker="o",
+            markersize=4.5,
+            label=PARTY_LABELS[party],
+        )
     ax.set_xlabel("Manifesto year")
     ax.set_ylabel("Long-term mentions per 1,000 words")
     ax.set_ylim(bottom=0)
@@ -240,9 +279,7 @@ def chart_two_party_year(df: pd.DataFrame, periods: pd.DataFrame, output_dir: Pa
 def chart_party_components(df: pd.DataFrame, party_slug: str, output_dir: Path) -> None:
     sub = (
         df[df["party_slug"] == party_slug]
-        .groupby("year", as_index=False)[
-            [f"{group}_per_1000_words" for group, _ in GROUPS]
-        ]
+        .groupby("year", as_index=False)[[f"{group}_per_1000_words" for group, _ in GROUPS]]
         .mean()
         .sort_values("year")
     )
@@ -255,21 +292,24 @@ def chart_party_components(df: pd.DataFrame, party_slug: str, output_dir: Path) 
     )
     for group, label in GROUPS:
         column = f"{group}_per_1000_words"
-        ax.plot(sub["year"], sub[column], color=GROUP_COLOURS[group], linewidth=2.2,
-                marker="o", markersize=3.5)
-        ax.annotate(label, (sub["year"].iloc[-1], sub[column].iloc[-1]),
-                    textcoords="offset points", xytext=(8, 0), fontsize=8.5,
-                    color=GROUP_COLOURS[group], va="center",
-                    annotation_clip=False)
+        ax.plot(sub["year"], sub[column], color=GROUP_COLOURS[group], linewidth=2.2, marker="o", markersize=3.5)
+        ax.annotate(
+            label,
+            (sub["year"].iloc[-1], sub[column].iloc[-1]),
+            textcoords="offset points",
+            xytext=(8, 0),
+            fontsize=8.5,
+            color=GROUP_COLOURS[group],
+            va="center",
+            annotation_clip=False,
+        )
     ax.set_xlabel("Manifesto year")
     ax.set_ylabel("Mentions per 1,000 words")
     ax.set_ylim(bottom=0)
     ax.grid(axis="y", color="#d7d2c8", linewidth=0.8)
     ax.spines[["top", "right"]].set_visible(False)
     add_footer(fig, method_footer(df))
-    save_figure(
-        fig, output_dir / f"nlp_{party_slug}_component_scores_by_manifesto_year.png"
-    )
+    save_figure(fig, output_dir / f"nlp_{party_slug}_component_scores_by_manifesto_year.png")
 
 
 def chart_party_ranking(df: pd.DataFrame, output_dir: Path) -> None:
@@ -290,11 +330,9 @@ def chart_party_ranking(df: pd.DataFrame, output_dir: Path) -> None:
     )
     labels = [PARTY_LABELS.get(p, p) for p in grouped.index]
     ax.barh(labels, grouped["long_term"], color=TEAL, height=0.62)
-    ax.scatter(grouped["short_term"], labels, color=ORANGE, s=55, zorder=3,
-               label="Short-term mentions")
+    ax.scatter(grouped["short_term"], labels, color=ORANGE, s=55, zorder=3, label="Short-term mentions")
     for i, (_, row) in enumerate(grouped.iterrows()):
-        ax.text(row["long_term"] + 0.08, i, f"n={int(row['n'])}", va="center",
-                fontsize=8, color="#5d6c7a")
+        ax.text(row["long_term"] + 0.08, i, f"n={int(row['n'])}", va="center", fontsize=8, color="#5d6c7a")
     ax.set_xlabel("Mentions per 1,000 words")
     ax.grid(axis="x", color="#d7d2c8", linewidth=0.8)
     ax.spines[["top", "right"]].set_visible(False)
@@ -331,8 +369,9 @@ def chart_year_scorecard(df: pd.DataFrame, year: int, output_dir: Path) -> None:
     for i in range(len(sub)):
         for j in range(len(GROUPS)):
             dark = shading[i, j] > 0.65
-            ax.text(j, i, f"{values[i, j]:.1f}", ha="center", va="center",
-                    fontsize=8, color="white" if dark else "#34424f")
+            ax.text(
+                j, i, f"{values[i, j]:.1f}", ha="center", va="center", fontsize=8, color="white" if dark else "#34424f"
+            )
     ax.set_xticks(np.arange(-0.5, len(GROUPS), 1), minor=True)
     ax.set_yticks(np.arange(-0.5, len(sub), 1), minor=True)
     ax.grid(which="minor", color="#f7f4ec", linewidth=2)
@@ -356,12 +395,36 @@ RUBRIC_DIMENSIONS = [
 # used as the faded watermark behind each panel (the analogue of the word
 # lists shown behind the word-count panels).
 RUBRIC_DESCRIPTIONS = {
-    "prevention": "Acting early to stop future harm: early\nintervention, safeguarding, preparedness,\nmitigating risks before they land.",
-    "tangible_investment": "Building durable physical assets: infrastructure,\nconstruction, buildings, networks, capital\nprojects that outlast the spending.",
-    "intangible_investment": "Building non-physical capacity: skills, training,\nresearch and development, education,\ninstitutional capability and know-how.",
-    "risk_resilience": "Standing up to shocks: resilience, security,\nflood and coastal defence, energy security,\nadaptation and stability.",
-    "current_consumption": "Near-term benefit: immediate transfers,\nservice delivery, relief and consumption felt\nnow rather than built for later.",
-    "constitutional_change": "Lasting change to the constitutional order:\nfranchise, devolution, treaty membership,\nthe machinery and rules of the state.",
+    "prevention": (
+        "Acting early to stop future harm: early\n"
+        "intervention, safeguarding, preparedness,\n"
+        "mitigating risks before they land."
+    ),
+    "tangible_investment": (
+        "Building durable physical assets: infrastructure,\n"
+        "construction, buildings, networks, capital\n"
+        "projects that outlast the spending."
+    ),
+    "intangible_investment": (
+        "Building non-physical capacity: skills, training,\n"
+        "research and development, education,\n"
+        "institutional capability and know-how."
+    ),
+    "risk_resilience": (
+        "Standing up to shocks: resilience, security,\n"
+        "flood and coastal defence, energy security,\n"
+        "adaptation and stability."
+    ),
+    "current_consumption": (
+        "Near-term benefit: immediate transfers,\n"
+        "service delivery, relief and consumption felt\n"
+        "now rather than built for later."
+    ),
+    "constitutional_change": (
+        "Lasting change to the constitutional order:\n"
+        "franchise, devolution, treaty membership,\n"
+        "the machinery and rules of the state."
+    ),
 }
 
 # Nesta house style (matches manifestos/scripts/plot_fig2_nesta.py).
@@ -385,9 +448,7 @@ def load_commitment_scores(commitments_path: Path, profiles: pd.DataFrame) -> pd
 RUBRIC_MIN_COMMITMENTS = 25
 
 
-def chart_year_rubric_scorecard(
-    commitments: pd.DataFrame, year: int, output_dir: Path
-) -> None:
+def chart_year_rubric_scorecard(commitments: pd.DataFrame, year: int, output_dir: Path) -> None:
     columns = [dim for dim, _ in RUBRIC_DIMENSIONS]
     sub = commitments[commitments["year"] == year]
     if sub.empty:
@@ -422,15 +483,16 @@ def chart_year_rubric_scorecard(
     ax.set_yticklabels(
         [
             f"{PARTY_LABELS.get(p, p)}  (n={int(row.n)})"
-            for p, row in zip(grouped.index, grouped.itertuples())
+            for p, row in zip(grouped.index, grouped.itertuples(), strict=True)
         ],
         fontsize=9.5,
     )
     for i in range(len(grouped)):
         for j in range(len(RUBRIC_DIMENSIONS)):
             dark = values[i, j] > 0.65 * vmax
-            ax.text(j, i, f"{values[i, j]:.0f}%", ha="center", va="center",
-                    fontsize=8, color="white" if dark else "#34424f")
+            ax.text(
+                j, i, f"{values[i, j]:.0f}%", ha="center", va="center", fontsize=8, color="white" if dark else "#34424f"
+            )
     ax.set_xticks(np.arange(-0.5, len(RUBRIC_DIMENSIONS), 1), minor=True)
     ax.set_yticks(np.arange(-0.5, len(grouped), 1), minor=True)
     ax.grid(which="minor", color="#f7f4ec", linewidth=2)
@@ -461,9 +523,7 @@ def _rubric_shares(commitments: pd.DataFrame, year: int) -> pd.DataFrame:
     return shares.sort_values("overall", ascending=False)
 
 
-def chart_year_rubric_panels(
-    commitments: pd.DataFrame, year: int, output_dir: Path
-) -> None:
+def chart_year_rubric_panels(commitments: pd.DataFrame, year: int, output_dir: Path) -> None:
     """Small-multiples in Nesta house style: one panel per policy dimension,
     a horizontal bar per party. Mirrors the word-count components figure."""
     shares = _rubric_shares(commitments, year)
@@ -495,16 +555,22 @@ def chart_year_rubric_panels(
     }
     with plt.rc_context(rc):
         fig, axes = plt.subplots(2, 3, figsize=(13, 7.8), sharex=True, sharey=True)
-        fig.subplots_adjust(left=0.13, right=0.97, top=0.80, bottom=0.13,
-                            wspace=0.12, hspace=0.42)
-        for ax, (dim, label) in zip(axes.flat, RUBRIC_DIMENSIONS):
-            ax.text(0.97, 0.5, RUBRIC_DESCRIPTIONS[dim], transform=ax.transAxes,
-                    ha="right", va="center", fontsize=7.2, color=NESTA_WATERMARK,
-                    zorder=0, linespacing=1.5)
-            ax.barh(y, shares[dim].to_numpy(), color=NESTA_BAR, height=0.66,
-                    zorder=3)
-            ax.set_title(label.replace("\n", " "), loc="left",
-                         color=NESTA_TITLE_TEXT, fontsize=12, pad=8)
+        fig.subplots_adjust(left=0.13, right=0.97, top=0.80, bottom=0.13, wspace=0.12, hspace=0.42)
+        for ax, (dim, label) in zip(axes.flat, RUBRIC_DIMENSIONS, strict=True):
+            ax.text(
+                0.97,
+                0.5,
+                RUBRIC_DESCRIPTIONS[dim],
+                transform=ax.transAxes,
+                ha="right",
+                va="center",
+                fontsize=7.2,
+                color=NESTA_WATERMARK,
+                zorder=0,
+                linespacing=1.5,
+            )
+            ax.barh(y, shares[dim].to_numpy(), color=NESTA_BAR, height=0.66, zorder=3)
+            ax.set_title(label.replace("\n", " "), loc="left", color=NESTA_TITLE_TEXT, fontsize=12, pad=8)
             ax.set_xlim(0, vmax)
             ax.set_ylim(-0.7, len(parties) - 0.3)
             ax.invert_yaxis()
@@ -519,28 +585,43 @@ def chart_year_rubric_panels(
 
         fig.suptitle(
             f"How {year} manifestos score against the policy typology",
-            x=0.012, y=0.965, ha="left", fontsize=18, fontweight="bold",
+            x=0.012,
+            y=0.965,
+            ha="left",
+            fontsize=18,
+            fontweight="bold",
             color=NESTA_TITLE_TEXT,
         )
         fig.text(
-            0.012, 0.895,
+            0.012,
+            0.895,
             "Share of each manifesto's commitments scoring 3 or 4 (out of 4) on each policy dimension. "
             "The faded text\nbehind each panel describes what that dimension captures.",
-            fontsize=10.5, color=NESTA_AXIS_TEXT,
+            fontsize=10.5,
+            color=NESTA_AXIS_TEXT,
         )
         fig.text(
-            0.86, 0.952, "LLM scored", fontsize=11, fontweight="bold",
-            color=NESTA_BLUE, ha="center", va="center",
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="#D6E0F5",
-                      edgecolor="none"),
+            0.86,
+            0.952,
+            "LLM scored",
+            fontsize=11,
+            fontweight="bold",
+            color=NESTA_BLUE,
+            ha="center",
+            va="center",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="#D6E0F5", edgecolor="none"),
         )
         fig.text(
-            0.012, 0.02,
+            0.012,
+            0.02,
             "Source: UK manifesto corpus, LLM policy-typology scorer. An LLM scores each policy commitment 0-4 on six "
             "dimensions; bars show the share scoring 3 or 4.\n"
-            f"General election {year}. Manifestos with fewer than {RUBRIC_MIN_COMMITMENTS} scored commitments excluded. "
+            f"General election {year}. "
+            f"Manifestos with fewer than {RUBRIC_MIN_COMMITMENTS} scored commitments excluded. "
             f"{n_commitments} commitments across {len(parties)} manifestos.",
-            fontsize=7.5, color=NESTA_AXIS_TEXT, va="bottom",
+            fontsize=7.5,
+            color=NESTA_AXIS_TEXT,
+            va="bottom",
         )
         save_figure(fig, output_dir / f"rubric_{year}_panels.png")
 

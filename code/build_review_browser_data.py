@@ -8,6 +8,7 @@ file that the browser app loads.
 Usage:
     uv run code/build_review_browser_data.py
 """
+
 import argparse
 import csv
 import json

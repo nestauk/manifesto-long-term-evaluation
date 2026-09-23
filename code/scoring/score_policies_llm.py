@@ -11,6 +11,7 @@ Usage:
 The input CSV needs commitment_id, party_name, year, title, commitment_text,
 supporting_quote and policy_context columns. Outputs go to outputs/scores/.
 """
+
 import argparse
 import csv
 import hashlib
@@ -25,7 +26,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from openai import APIConnectionError, APITimeoutError, InternalServerError, OpenAI, RateLimitError
-
 
 ROOT = Path(__file__).resolve().parents[2]
 SCORES_DIR = ROOT / "outputs" / "scores"
@@ -75,6 +75,7 @@ def load_system_prompt(version: str) -> str:
         return prompt_path.read_text(encoding="utf-8").strip()
     except FileNotFoundError as exc:
         raise SystemExit(f"missing Discovery prompt version: {prompt_path}") from exc
+
 
 SCORE_FIELDS = [
     "prevention",
@@ -303,8 +304,7 @@ def create_chat_completion_with_retries(
                 break
             delay = sleep_with_backoff(attempt, backoff_base_seconds, backoff_max_seconds)
             print(
-                f"retrying after {exc.__class__.__name__} in {delay}s "
-                f"(attempt {attempt}/{max_api_retries})",
+                f"retrying after {exc.__class__.__name__} in {delay}s (attempt {attempt}/{max_api_retries})",
                 flush=True,
             )
     assert last_exc is not None
@@ -350,8 +350,7 @@ def repair_json(
                 break
             delay = sleep_with_backoff(repair_attempt, backoff_base_seconds, backoff_max_seconds)
             print(
-                f"retrying malformed JSON repair output in {delay}s "
-                f"(attempt {repair_attempt}/{repair_attempts})",
+                f"retrying malformed JSON repair output in {delay}s (attempt {repair_attempt}/{repair_attempts})",
                 flush=True,
             )
             continue
@@ -418,7 +417,8 @@ def score_commitment(
                 {
                     "role": "system",
                     "content": (
-                        "Your previous output failed validation. Re-score the same commitment and return valid JSON only. "
+                        "Your previous output failed validation. "
+                        "Re-score the same commitment and return valid JSON only. "
                         f"Validation issue: {retry_note}"
                     ),
                 }
@@ -502,7 +502,8 @@ def validate_response(obj: dict, commitment_id: str, row: dict | None = None) ->
     tangible_rationale = (rationales.get("tangible_investment") or "").lower()
     if tangible_score > 0 and not any(term in tangible_rationale for term in PHYSICAL_ASSET_TERMS):
         raise ValueError(
-            "tangible_investment rationale must identify physical assets, infrastructure, equipment, or physical capital"
+            "tangible_investment rationale must identify physical assets, "
+            "infrastructure, equipment, or physical capital"
         )
     if row is not None and tangible_score >= 3:
         commitment_text = normalize_text(row.get("commitment_text", ""))
@@ -512,7 +513,8 @@ def validate_response(obj: dict, commitment_id: str, row: dict | None = None) ->
         has_generic_spend = contains_any_term(commitment_text, HIGH_TANGIBLE_GENERIC_SPEND_TERMS)
         if has_planning and not has_capital_work:
             raise ValueError(
-                "tangible_investment >=3 cannot rely mainly on planning, prioritisation, review, or similar pre-build language"
+                "tangible_investment >=3 cannot rely mainly on planning, prioritisation, "
+                "review, or similar pre-build language"
             )
         if has_generic_spend and not has_explicit_asset and not has_capital_work:
             raise ValueError(
@@ -649,9 +651,7 @@ def refresh_flattened_row(flattened: dict, input_row: dict | None) -> dict:
     )
     out["global_duplicate_group"] = source_row.get("global_duplicate_group", out.get("global_duplicate_group", ""))
     out["global_duplicate_of"] = source_row.get("global_duplicate_of", out.get("global_duplicate_of", ""))
-    out["global_duplicate_reason"] = source_row.get(
-        "global_duplicate_reason", out.get("global_duplicate_reason", "")
-    )
+    out["global_duplicate_reason"] = source_row.get("global_duplicate_reason", out.get("global_duplicate_reason", ""))
     out["trust_tier"] = trust_tier
     out["trust_reason"] = trust_reason
     return out
