@@ -17,6 +17,7 @@ The project has two parts. First, we count words and phrases associated with lon
 manifestos/       source corpus (PDF, HTML, txt)
 data/
   commitments.csv       scored policy commitments (headline dataset)
+  scoring_input.csv     input to the LLM scorer (commitments with policy context)
   nlp_profiles.csv      word-count language profiles (per-1,000-word densities)
   documents.csv         per-document metadata + extracted full text
   catalog.csv           corpus provenance (source URLs, retrieval method, quality)
