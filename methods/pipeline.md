@@ -44,29 +44,25 @@ Where a chunk appears to contain more commitments than were initially captured (
 
 We merge outputs from the initial extraction and the recovery pass into a single commitment-level dataset, standardising fields needed for downstream analysis.
 
-### 6. Adversarial review
+### 6. Screening
 
-Each extracted commitment is reviewed by a second LLM pass that challenges whether the quote works as a standalone commitment. The adversarial reviewer classifies each row as keep, drop, or review using strict criteria  -  it is instructed to be sceptical, and to drop quotes that are vague, retrospective, context-dependent, or slogan-like rather than giving them the benefit of the doubt. The verdicts feed directly into the screening stage.
+We apply rule-based filters to flag rows that look like noise: status claims, vague rhetoric, formatting artefacts, or other non-commitments.
 
-### 7. Screening
-
-We apply rule-based filters combined with the adversarial verdicts to remove or flag rows that look like noise: status claims, vague rhetoric, formatting artefacts, or other non-commitments.
-
-### 8. Deduplication
+### 7. Deduplication
 
 We collapse obvious duplicates so the scoring set contains one row per substantively distinct commitment.
 
-### 9. Policy-context reconstruction
+### 8. Policy-context reconstruction
 
 For each retained commitment, we reconstruct a local source-text window containing the commitment and surrounding material needed to interpret it properly. This context window is passed to the scoring stage alongside the commitment text.
 
-### 10. Analysis-readiness gating
+### 9. Analysis-readiness gating
 
 We identify which documents and rows are ready for scoring and which should be reviewed, rerun, or held back. Each commitment also gets a trust tier (high, medium or low) and an ambiguity flag. These are kept as columns rather than used to filter rows, so readers can apply their own threshold.
 
-### 11. Scoring
+### 10. Scoring
 
-We score the commitments from documents that pass the readiness checks against the policy typology using a versioned LLM prompt. Each commitment is scored with its supporting quote and reconstructed policy context as input. The scorer records the prompt version in its output for reproducibility.
+We score every commitment that survives screening and deduplication, from all 108 documents, against the policy typology using a versioned LLM prompt. The document readiness status from the previous stage is kept as a column (`doc_status`) rather than used as a filter. Each commitment is scored with its supporting quote and reconstructed policy context as input. The scorer records the prompt version in its output for reproducibility.
 
 The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0) using the rubric in `methods/prompts/discovery/system_prompt_v11.txt`. The scoring script, including the per-commitment message template, is `code/scoring/score_policies_llm.py`. Its input, one row per published commitment with the reconstructed policy context, is `data/scoring_input.csv`:
 
@@ -74,11 +70,13 @@ The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0
 uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv
 ```
 
+Two groups of commitments are not in the published data. 4,630 commitments whose extracted quote could not be matched to the source text were not scored. 758 commitments failed the scorer's validation checks on every retry and have no score. That leaves 23,026 of the 28,414 commitments that survived screening and deduplication.
+
 Scores are accompanied by confidence, ambiguity, and trust signals. Ambiguous rows are retained in the data but also separated into review outputs for human checking.
 
 When summarising scores into the per-manifesto rubric figures, we treat a dimension as a central feature of a commitment when it scores 3 or 4 (out of 4), and report the share of a manifesto's commitments that clear that bar on each dimension. We exclude any manifesto with fewer than 25 scored commitments from those figures, since a handful of commitments gives an unstable share (this drops, for example, Sinn Féin's 6-commitment 2019 manifesto).
 
-### 12. Quality assurance
+### 11. Quality assurance
 
 We generate targeted review subsets and QA packs so that uncertain, unusual, and high-leverage rows can be audited systematically.
 
@@ -90,7 +88,6 @@ We generate targeted review subsets and QA packs so that uncertain, unusual, and
 | Commitment extraction | LLM |
 | Saturated-section reruns | LLM |
 | Table assembly & merging | Deterministic |
-| Adversarial review | LLM |
 | Screening rules | Deterministic |
 | Deduplication | Deterministic |
 | Policy-context reconstruction | Deterministic |
@@ -102,7 +99,7 @@ The LLM is used for the judgement-heavy tasks; the rest of the pipeline is struc
 
 ## Prompt versioning
 
-The extraction system prompt is in `methods/prompts/extraction/`, and the code for stages 3-10 is in `code/pipeline/`. The scoring prompt is stored as a versioned text file under `methods/prompts/`. The scorer loads a specific prompt version at runtime and records it in its outputs. `discovery/system_prompt_v11.txt` is the version behind the published data.
+The extraction system prompt is in `methods/prompts/extraction/`, and the code for stages 3-9 is in `code/pipeline/`. The scoring prompt is stored as a versioned text file under `methods/prompts/`. The scorer loads a specific prompt version at runtime and records it in its outputs. `discovery/system_prompt_v11.txt` is the version behind the published data.
 
 # NLP profiling
 

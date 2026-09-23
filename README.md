@@ -88,7 +88,7 @@ uv run code/build_nlp_highlights.py          # long-term-language mode (review_b
 
 Runnable from the repo: the word-count profiles, the LLM scoring step (from `data/scoring_input.csv` to scores), the figures and the review browser data.
 
-Published but not runnable as is: the earlier stages of the commitments pipeline (stages 3-10 in [`methods/pipeline.md`](methods/pipeline.md)), in [`code/pipeline/`](code/pipeline/). These scripts are included exactly as used, so the extraction and filtering rules can be read, but their paths point at the working folder they were written in. Their output is `data/scoring_input.csv`, so scoring can be checked or re-run from that point.
+Published but not runnable as is: the earlier stages of the commitments pipeline (stages 3-9 in [`methods/pipeline.md`](methods/pipeline.md)), in [`code/pipeline/`](code/pipeline/). These scripts are included exactly as used, so the extraction and filtering rules can be read, but their paths point at the working folder they were written in. Their output is `data/scoring_input.csv`, so scoring can be checked or re-run from that point.
 
 ## Data sources
 
