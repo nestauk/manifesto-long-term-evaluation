@@ -27,8 +27,8 @@ figures/          charts (PNG)
 tables/           supporting tables (TSV)
 methods/
   pipeline.md     end-to-end methodology
-  prompts/        LLM system prompt used for scoring
-code/             scripts used to score commitments (code/scoring/), generate the NLP profiles, and build the review browser data
+  prompts/        LLM system prompts used for extraction and scoring
+code/             the commitments pipeline as used (code/pipeline/), the scorer (code/scoring/), the NLP profiles, and the review browser data builders
 review_browser/   a self-contained web app for browsing commitments alongside the source text
 pyproject.toml    Python dependencies (locked in uv.lock)
 ```
@@ -86,9 +86,9 @@ uv run code/build_nlp_highlights.py          # long-term-language mode (review_b
 
 ## What is and isn't reproducible from this repo
 
-Included and runnable: the word-count profiles, the LLM scoring step (from `data/scoring_input.csv` to scores), the figures and the review browser data.
+Runnable from the repo: the word-count profiles, the LLM scoring step (from `data/scoring_input.csv` to scores), the figures and the review browser data.
 
-Not included: the code for the earlier stages of the commitments pipeline (extraction, saturated-section recovery, adversarial review, screening, deduplication and policy-context reconstruction, stages 3-10 in [`methods/pipeline.md`](methods/pipeline.md)). It was built against an internal working layout and is not packaged to run here. Their output is published as `data/scoring_input.csv`, so scoring can be checked or re-run from that point.
+Published but not runnable as is: the earlier stages of the commitments pipeline (stages 3-10 in [`methods/pipeline.md`](methods/pipeline.md)), in [`code/pipeline/`](code/pipeline/). These scripts are included exactly as used, so the extraction and filtering rules can be read, but their paths point at the working folder they were written in. Their output is `data/scoring_input.csv`, so scoring can be checked or re-run from that point.
 
 ## Data sources
 

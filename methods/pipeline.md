@@ -102,7 +102,7 @@ The LLM is used for the judgement-heavy tasks; the rest of the pipeline is struc
 
 ## Prompt versioning
 
-The scoring prompt is stored as a versioned text file under `methods/prompts/`. The scorer loads a specific prompt version at runtime and records it in its outputs. `discovery/system_prompt_v11.txt` is the version behind the published data.
+The extraction system prompt is in `methods/prompts/extraction/`, and the code for stages 3-10 is in `code/pipeline/`. The scoring prompt is stored as a versioned text file under `methods/prompts/`. The scorer loads a specific prompt version at runtime and records it in its outputs. `discovery/system_prompt_v11.txt` is the version behind the published data.
 
 # NLP profiling
 
