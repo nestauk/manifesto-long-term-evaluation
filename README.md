@@ -27,9 +27,26 @@ figures/          charts (PNG)
 tables/           supporting tables (TSV)
 methods/
   pipeline.md     end-to-end methodology
-  prompts/        LLM system prompts used for extraction and scoring
+  prompts/        LLM system prompt used for scoring
 code/             scripts used to score commitments (code/scoring/), generate the NLP profiles, and build the review browser data
 review_browser/   a self-contained web app for browsing commitments alongside the source text
+pyproject.toml    Python dependencies (locked in uv.lock)
+```
+
+## Setup
+
+The scripts need Python 3.10+ and [uv](https://docs.astral.sh/uv/). From the repo root:
+
+```bash
+uv sync
+```
+
+Re-running the LLM scorer also needs an OpenAI API key: copy `.env.example` to `.env` and fill it in. Nothing else needs a key.
+
+If you plan to contribute, install the pre-commit hooks (formatting and linting with ruff), which also run on every pull request:
+
+```bash
+uv run pre-commit install
 ```
 
 ## Review browser
@@ -66,6 +83,12 @@ uv run code/build_nlp_highlights.py          # long-term-language mode (review_b
 ```
 
 `data.json` is built from `data/commitments.csv` and `data/documents.csv`. `nlp_hits.json` reuses the regex patterns in `code/nlp/profile_manifestos_nlp.py` to precompute the character offset of every word-group match in each manifesto, so the browser highlights without re-running regex client-side.
+
+## What is and isn't reproducible from this repo
+
+Included and runnable: the word-count profiles, the LLM scoring step (from `data/scoring_input.csv` to scores), the figures and the review browser data.
+
+Not included: the code for the earlier stages of the commitments pipeline (extraction, saturated-section recovery, adversarial review, screening, deduplication and policy-context reconstruction, stages 3-10 in [`methods/pipeline.md`](methods/pipeline.md)). It was built against an internal working layout and is not packaged to run here. Their output is published as `data/scoring_input.csv`, so scoring can be checked or re-run from that point.
 
 ## Data sources
 

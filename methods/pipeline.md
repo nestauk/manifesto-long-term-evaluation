@@ -71,7 +71,7 @@ We score the commitments from documents that pass the readiness checks against t
 The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0) using the rubric in `methods/prompts/discovery/system_prompt_v11.txt`. The scoring script, including the per-commitment message template, is `code/scoring/score_policies_llm.py`. Its input, one row per published commitment with the reconstructed policy context, is `data/scoring_input.csv`:
 
 ```bash
-uv run --with openai code/scoring/score_policies_llm.py --input data/scoring_input.csv
+uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv
 ```
 
 Scores are accompanied by confidence, ambiguity, and trust signals. Ambiguous rows are retained in the data but also separated into review outputs for human checking.
