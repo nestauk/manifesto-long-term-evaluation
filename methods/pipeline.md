@@ -70,7 +70,7 @@ The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0
 uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv
 ```
 
-Two groups of commitments are not in the published data. 4,630 commitments whose extracted quote could not be matched to the source text were not scored. 758 commitments failed the scorer's validation checks on every retry and have no score. That leaves 23,026 of the 28,414 commitments that survived screening and deduplication.
+Two groups of commitments are not in the published data. 4,630 commitments whose extracted quote could not be matched to the source text were not scored (the scorer's `--only-valid` option has the same effect). 758 commitments failed the scorer's validation checks on every retry and have no score. That leaves 23,026 of the 28,414 commitments that survived screening and deduplication.
 
 Scores are accompanied by confidence, ambiguity, and trust signals. Ambiguous rows are retained in the data but also separated into review outputs for human checking.
 

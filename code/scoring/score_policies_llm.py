@@ -6,7 +6,7 @@ and --model gpt-5-mini (temperature 0). Needs OPENAI_API_KEY in the
 environment or in a .env file at the repo root.
 
 Usage:
-    uv run --with openai code/scoring/score_policies_llm.py --input data/scoring_input.csv --output-prefix <name>
+    uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv --output-prefix <name>
 
 The input CSV needs commitment_id, party_name, year, title, commitment_text,
 supporting_quote and policy_context columns. Outputs go to outputs/scores/.
