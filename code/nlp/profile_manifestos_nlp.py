@@ -16,10 +16,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent.parent.parent
-ANALYSIS_DIR = ROOT / "analysis"
-DOCUMENTS_CSV = ANALYSIS_DIR / "documents.csv"
-OUTPUT_DIR = ANALYSIS_DIR / "nlp"
+ROOT = Path(__file__).resolve().parents[2]
+DOCUMENTS_CSV = ROOT / "data" / "documents.csv"
+TEXT_DIR = ROOT / "text"
+OUTPUT_DIR = ROOT / "outputs" / "nlp"
 DEFAULT_OUTPUT_CSV = OUTPUT_DIR / "manifesto_nlp_profiles.csv"
 DEFAULT_OUTPUT_TSV = OUTPUT_DIR / "manifesto_nlp_profiles.tsv"
 DEFAULT_CHUNK_TSV = OUTPUT_DIR / "manifesto_nlp_chunks.tsv"
@@ -455,7 +455,7 @@ def parse_args() -> argparse.Namespace:
         "--documents-csv",
         type=Path,
         default=DOCUMENTS_CSV,
-        help="Analysis documents table built by build_analysis.py",
+        help="Documents table (doc_id, party_slug, year, local_path, ...)",
     )
     parser.add_argument(
         "--output-csv",
@@ -508,13 +508,14 @@ def main() -> None:
     args.chunk_output.parent.mkdir(parents=True, exist_ok=True)
     args.skipped_output.parent.mkdir(parents=True, exist_ok=True)
 
-    text_root = ROOT.parent
     profile_rows: list[dict[str, object]] = []
     chunk_rows: list[dict[str, object]] = []
     skipped_rows: list[dict[str, object]] = []
 
     for row in filtered:
-        text_path = text_root / row["text_path"]
+        # Cleaned text lives at text/<party_slug>/<source file stem>.txt
+        text_path = TEXT_DIR / row["party_slug"] / f"{Path(row['local_path']).stem}.txt"
+        row["text_path"] = text_path.relative_to(ROOT).as_posix()
         text = text_path.read_text(encoding="utf-8", errors="ignore")
         text_quality_flag = detect_text_quality_flag(text)
         if text_quality_flag:

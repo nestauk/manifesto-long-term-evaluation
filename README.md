@@ -15,6 +15,7 @@ The project has two parts. First, we count words and phrases associated with lon
 
 ```
 manifestos/       source corpus (PDF, HTML, txt)
+text/             cleaned plain text of each manifesto, used for the word counts
 data/
   commitments.csv       scored policy commitments (headline dataset)
   scoring_input.csv     input to the LLM scorer (commitments with policy context)
@@ -46,6 +47,14 @@ To run it locally instead:
 python3 -m http.server 8000
 # then open http://localhost:8000/review_browser/
 ```
+
+## Regenerating the word-count profiles
+
+```bash
+uv run code/nlp/profile_manifestos_nlp.py
+```
+
+This reads `data/documents.csv` and the cleaned texts in `text/`, and writes to `outputs/nlp/`. Its profile table matches `data/nlp_profiles.csv`.
 
 ## Regenerating the review browser data
 
