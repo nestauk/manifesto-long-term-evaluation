@@ -3,6 +3,8 @@
 
 const DIM_LABELS = { P: 'Prevention', T: 'Physical', I: 'Knowledge', R: 'Resilience', C: 'Consumption', CC: 'Constitutional' };
 const DIMS = ['P', 'T', 'I', 'R', 'C', 'CC'];
+// Short codes shown on the score chips; keys stay as the data's dimension codes.
+const DIM_SHORT = { P: 'P', T: 'Ph', I: 'K', R: 'R', C: 'C', CC: 'CC' };
 
 let DATA = null;
 let currentDocIndex = -1;
@@ -234,7 +236,7 @@ function renderCommitments() {
     card.innerHTML = `
       <div class="commitment-text">${escHtml(c.text)}</div>
       <div class="score-row">
-        ${DIMS.map(d => `<span class="score-chip" data-dim="${d}" data-val="${c.scores[d]}">${d}:${c.scores[d]}</span>`).join('')}
+        ${DIMS.map(d => `<span class="score-chip" data-dim="${d}" data-val="${c.scores[d]}">${DIM_SHORT[d]}:${c.scores[d]}</span>`).join('')}
         <span class="confidence-tag">${c.conf.toFixed(2)}</span>
         <span class="trust-tag ${c.trust}">${c.trust}</span>
       </div>
