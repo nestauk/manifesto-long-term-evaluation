@@ -49,6 +49,21 @@ If you plan to contribute, install the pre-commit hooks (formatting and linting 
 uv run pre-commit install
 ```
 
+## Reproducing the outputs
+
+Run these from the repo root after `uv sync`. Only the scorer needs an API key.
+
+| Output | Command | Notes |
+|---|---|---|
+| Word-count profiles | `uv run code/nlp/profile_manifestos_nlp.py` | Reads `data/documents.csv` and `text/`, writes to `outputs/nlp/`. The profile table has the same values as `data/nlp_profiles.csv` |
+| Figures | `uv run code/nlp/plot_manifestos_nlp.py` | Overwrites `figures/nlp/` by default. Use `--output-dir <dir>` to write elsewhere |
+| Review browser data | `uv run code/build_review_browser_data.py`<br>`uv run code/build_nlp_highlights.py` | Rebuild `review_browser/data.json` and `review_browser/nlp_hits.json` from the CSVs in `data/` |
+| Commitment scores | `uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv --output-prefix <name>` | Needs `OPENAI_API_KEY`. Writes to `outputs/scores/`. Calls the API once per commitment (23,026 rows), so add `--max-rows 20` to try it first |
+
+The scorer's defaults are the settings behind the published data: prompt v11, `gpt-5-mini`, temperature 0. `data/scoring_input.csv` holds the 23,026 published commitments. Commitments whose quote could not be matched to the source text were not scored in the published run (the scorer's `--only-valid` option has the same effect), and they are already left out of this file.
+
+The earlier stages of the commitments pipeline (stages 3-9 in [`methods/pipeline.md`](methods/pipeline.md)) are in [`code/pipeline/`](code/pipeline/). They are published exactly as used, so the extraction and filtering rules can be read, but they do not run from this repo: their paths point at the working folder they were written in. `data/scoring_input.csv` is their output, less the rows described in the scoring section of `methods/pipeline.md`.
+
 ## Review browser
 
 A small static web app with two modes:
@@ -64,31 +79,6 @@ To run it locally instead:
 python3 -m http.server 8000
 # then open http://localhost:8000/review_browser/
 ```
-
-## Regenerating the word-count profiles
-
-```bash
-uv run code/nlp/profile_manifestos_nlp.py
-```
-
-This reads `data/documents.csv` and the cleaned texts in `text/`, and writes to `outputs/nlp/`. Its profile table matches `data/nlp_profiles.csv`.
-
-## Regenerating the review browser data
-
-The browser loads two generated artefacts. Rebuild them whenever the underlying CSVs change:
-
-```bash
-uv run code/build_review_browser_data.py     # commitments mode (review_browser/data.json)
-uv run code/build_nlp_highlights.py          # long-term-language mode (review_browser/nlp_hits.json)
-```
-
-`data.json` is built from `data/commitments.csv` and `data/documents.csv`. `nlp_hits.json` reuses the regex patterns in `code/nlp/profile_manifestos_nlp.py` to precompute the character offset of every word-group match in each manifesto, so the browser highlights without re-running regex client-side.
-
-## What is and isn't reproducible from this repo
-
-Runnable from the repo: the word-count profiles, the LLM scoring step (from `data/scoring_input.csv` to scores), the figures and the review browser data.
-
-Published but not runnable as is: the earlier stages of the commitments pipeline (stages 3-9 in [`methods/pipeline.md`](methods/pipeline.md)), in [`code/pipeline/`](code/pipeline/). These scripts are included exactly as used, so the extraction and filtering rules can be read, but their paths point at the working folder they were written in. Their output is `data/scoring_input.csv`, so scoring can be checked or re-run from that point.
 
 ## Data sources
 
