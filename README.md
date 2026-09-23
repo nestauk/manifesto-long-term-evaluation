@@ -67,6 +67,14 @@ uv run code/build_nlp_highlights.py          # long-term-language mode (review_b
 
 `data.json` is built from `data/commitments.csv` and `data/documents.csv`. `nlp_hits.json` reuses the regex patterns in `code/nlp/profile_manifestos_nlp.py` to precompute the character offset of every word-group match in each manifesto, so the browser highlights without re-running regex client-side.
 
+## Data sources
+
+The list of UK manifestos, and the party codes, dates and titles in the `mp_*` columns of `data/catalog.csv` and `data/documents.csv`, come from the Manifesto Project (document list from the [Manifesto Corpus](https://manifesto-project.wzb.eu/information/documents/corpus), version 2025-1, downloaded March 2026). `data/catalog-missing.csv` lists Manifesto Project entries we could not source. Please cite:
+
+> Lehmann, Pola / Franzmann, Simon / Al-Gaddooa, Denise / Burst, Tobias / Ivanusch, Christoph / Regel, Sven / Riethmüller, Felicia / Volkens, Andrea / Weßels, Bernhard / Zehnter, Lisa (2025): The Manifesto Data Collection. Manifesto Project (MRG/CMP/MARPOR). Version 2025a. Berlin: Wissenschaftszentrum Berlin für Sozialforschung (WZB) / Göttingen: Institut für Demokratieforschung (IfDem). https://doi.org/10.25522/manifesto.mpds.2025a
+
+The manifesto files themselves were not obtained from the Manifesto Project. They were collected from party websites and public archives, chiefly Political Science Resources (via the Internet Archive), [CAIN](https://cain.ulster.ac.uk/) at Ulster University, [Lexical Analysis Software](https://lexically.net/) and [UCREL](https://ucrel.lancs.ac.uk/) at Lancaster University. The source of each file is recorded in `data/catalog.csv` (`source_url`, `archive_url`, `source_type`).
+
 ## Licence
 
 Code and derived data are released under the [MIT Licence](LICENSE). The source manifestos in `manifestos/` and their cleaned text in `text/` remain the copyright of the parties that published them and are included for research use.
