@@ -6,6 +6,7 @@ manually curated lexicons and report raw hits plus mentions per 1,000 words.
 No weighting, no composite scores: every number in the output is either a
 count or a count divided by document length.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,7 +15,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCUMENTS_CSV = ROOT / "data" / "documents.csv"
@@ -356,9 +356,7 @@ def count_matches(text: str, patterns: list[re.Pattern[str]]) -> int:
 
 
 def analyze_chunk(text: str, chunk_index: int) -> ChunkResult:
-    counts = {
-        name: count_matches(text, COMPILED_PATTERNS[name]) for name in REPORTED_GROUPS
-    }
+    counts = {name: count_matches(text, COMPILED_PATTERNS[name]) for name in REPORTED_GROUPS}
     return ChunkResult(
         chunk_index=chunk_index,
         text=text,
@@ -448,9 +446,7 @@ def build_skipped_row(row: dict[str, str], text: str, text_quality_flag: str) ->
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Profile manifesto full text with word-count densities."
-    )
+    parser = argparse.ArgumentParser(description="Profile manifesto full text with word-count densities.")
     parser.add_argument(
         "--documents-csv",
         type=Path,
@@ -544,17 +540,21 @@ def main() -> None:
         writer.writerows(chunk_rows)
 
     with args.skipped_output.open("w", newline="", encoding="utf-8") as f:
-        fieldnames = list(skipped_rows[0].keys()) if skipped_rows else [
-            "doc_id",
-            "party_slug",
-            "party_name",
-            "year",
-            "title",
-            "text_path",
-            "word_count",
-            "text_quality_flag",
-            "snippet",
-        ]
+        fieldnames = (
+            list(skipped_rows[0].keys())
+            if skipped_rows
+            else [
+                "doc_id",
+                "party_slug",
+                "party_name",
+                "year",
+                "title",
+                "text_path",
+                "word_count",
+                "text_quality_flag",
+                "snippet",
+            ]
+        )
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(skipped_rows)

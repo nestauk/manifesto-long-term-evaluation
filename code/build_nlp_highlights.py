@@ -9,6 +9,7 @@ terms) alongside so the JS only needs one fetch.
 Usage:
     uv run code/build_nlp_highlights.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -132,9 +133,7 @@ def hits_for_document(text: str) -> dict:
     for group in GROUP_ORDER:
         matches = list(find_hits(text, COMPILED_PATTERNS[group]))
         matches.sort(key=lambda m: m.start())
-        hits_by_group[group] = [
-            {"s": m.start(), "e": m.end(), "t": m.group(0)} for m in matches
-        ]
+        hits_by_group[group] = [{"s": m.start(), "e": m.end(), "t": m.group(0)} for m in matches]
         counts[group] = len(matches)
     hits_by_group["_counts"] = counts
     return hits_by_group
