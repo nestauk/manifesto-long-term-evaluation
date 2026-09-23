@@ -1,6 +1,6 @@
-# Adapted from nestauk/ds-cookiecutter. The source corpus and published data are
-# excluded from the text fixers so they are never rewritten.
-exclude: ^(manifestos|text|data)/|^review_browser/.*\.json$
+# Adapted from nestauk/ds-cookiecutter. The source corpus, published data and the
+# pipeline scripts kept exactly as used are excluded so they are never rewritten.
+exclude: ^(manifestos|text|data|code/pipeline)/|^review_browser/.*\.json$
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
