@@ -11,9 +11,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-SCRATCH_DIR = Path(__file__).resolve().parents[2] / "_local" / "scratch"
-SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
-MPLCONFIGDIR = SCRATCH_DIR / "mplconfig"
+CACHE_DIR = Path(__file__).resolve().parents[2] / "outputs" / ".cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+MPLCONFIGDIR = CACHE_DIR / "mplconfig"
 MPLCONFIGDIR.mkdir(parents=True, exist_ok=True)
 import os
 
