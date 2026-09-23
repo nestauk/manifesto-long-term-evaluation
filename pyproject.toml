@@ -1,0 +1,37 @@
+[project]
+name = "manifesto-long-term-evaluation"
+version = "1.0.0"
+description = "Data, methods and results from Nesta's analysis of long-term thinking in UK party manifestos, 1945-2024"
+authors = [{ name = "Nesta" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "openai",
+    "pandas",
+]
+
+[project.urls]
+repository = "https://github.com/nestauk/manifesto-long-term-evaluation"
+issues = "https://github.com/nestauk/manifesto-long-term-evaluation/issues"
+
+[dependency-groups]
+dev = ["pre-commit", "ruff"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["manifestos", "text"]
+
+[tool.ruff.lint]
+select = [
+    "B", # flake8-bugbear: Likely bugs
+    "E", # pycodestyle: Errors (default)
+    "F", # pyflakes: Linter
+    "I", # isort
+    "W", # pycodestyle: Warnings (default)
+]
