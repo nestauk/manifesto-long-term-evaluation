@@ -66,3 +66,7 @@ uv run code/build_nlp_highlights.py          # long-term-language mode (review_b
 ```
 
 `data.json` is built from `data/commitments.csv` and `data/documents.csv`. `nlp_hits.json` reuses the regex patterns in `code/nlp/profile_manifestos_nlp.py` to precompute the character offset of every word-group match in each manifesto, so the browser highlights without re-running regex client-side.
+
+## Licence
+
+Code and derived data are released under the [MIT Licence](LICENSE). The source manifestos in `manifestos/` and their cleaned text in `text/` remain the copyright of the parties that published them and are included for research use.
