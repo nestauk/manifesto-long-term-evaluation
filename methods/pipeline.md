@@ -68,6 +68,8 @@ We identify which documents and rows are ready for scoring and which should be r
 
 We score the analysis-ready commitments against the policy typology using a versioned LLM prompt. Each commitment is scored with its supporting quote and reconstructed policy context as input. The scorer records the prompt version in its output for reproducibility.
 
+The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0) using the rubric in `methods/prompts/discovery/system_prompt_v11.txt`. The scoring script, including the per-commitment message template, is `code/scoring/score_policies_llm.py`.
+
 Scores are accompanied by confidence, ambiguity, and trust signals. Ambiguous rows are retained in the data but also separated into review outputs for human checking.
 
 When summarising scores into the per-manifesto rubric figures, we treat a dimension as a central feature of a commitment when it scores 3 or 4 (out of 4), and report the share of a manifesto's commitments that clear that bar on each dimension. We exclude any manifesto with fewer than 25 scored commitments from those figures, since a handful of commitments gives an unstable share (this drops, for example, Sinn Féin's 6-commitment 2019 manifesto).
@@ -96,7 +98,7 @@ The LLM is used for the judgement-heavy tasks; the rest of the pipeline is struc
 
 ## Prompt versioning
 
-All LLM prompts are stored as versioned text files under `prompts/`. The scorer and extractor scripts load a specific prompt version at runtime and record it in their outputs, so any result can be traced back to the exact prompt that produced it.
+Scoring prompts are stored as versioned text files under `methods/prompts/`. The scorer loads a specific prompt version at runtime and records it in its outputs. `discovery/system_prompt_v11.txt` is the version behind the published data; `v10` is the earlier version it replaced (v11 added the constitutional change dimension). `soif/system_prompt_v1.txt` is an experimental alternative typology that was not used for any published output.
 
 # NLP profiling
 
