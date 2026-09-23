@@ -26,7 +26,7 @@ tables/           supporting tables (TSV)
 methods/
   pipeline.md     end-to-end methodology
   prompts/        LLM system prompts used for extraction and scoring
-code/             scripts used to generate the NLP profiles and review browser data
+code/             scripts used to score commitments (code/scoring/), generate the NLP profiles, and build the review browser data
 review_browser/   a self-contained web app for browsing commitments alongside the source text
 ```
 
