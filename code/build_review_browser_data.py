@@ -6,12 +6,13 @@ document, extracts page-break offsets for PDFs, and writes a single JSON
 file that the browser app loads.
 
 Usage:
-    uv run scripts/build_review_browser_data.py
+    uv run code/build_review_browser_data.py
 """
 import argparse
 import csv
 import json
 import math
+import re
 import sys
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
@@ -53,10 +54,6 @@ SCORE_REQUIRED_COLUMNS = {
     "commitment_id",
     "commitment_text",
     "supporting_quote",
-    "quote_char_start",
-    "quote_char_end",
-    "chunk_char_start",
-    "chunk_char_end",
     "confidence",
     "ambiguous",
     "trust_tier",
@@ -77,16 +74,6 @@ def safe_float(value: str, default: float = 0.0) -> float:
     except (TypeError, ValueError):
         return default
     return parsed if math.isfinite(parsed) else default
-
-
-def optional_int(value: str | None) -> int | None:
-    text = str(value or "").strip()
-    if not text:
-        return None
-    try:
-        return int(float(text))
-    except (TypeError, ValueError):
-        return None
 
 
 def boolish(value: str) -> bool:
@@ -139,33 +126,22 @@ def iter_scores(path: Path) -> Iterator[dict[str, str]]:
     yield from iter_csv_rows(path, SCORE_REQUIRED_COLUMNS)
 
 
-def normalize_char_range(start: int | None, end: int | None) -> tuple[int | None, int | None]:
-    if start is None and end is None:
-        return None, None
-    if start is not None and end is not None and end < start:
-        start, end = end, start
-    return start, end
+def locate_quote(full_text: str, quote: str) -> tuple[int, int]:
+    """Find the quote in the document text, tolerating whitespace and punctuation drift.
 
-
-def resolve_quote_range(row: dict) -> tuple[int, int]:
-    quote_start, quote_end = normalize_char_range(
-        optional_int(row.get("quote_char_start")),
-        optional_int(row.get("quote_char_end")),
-    )
-    chunk_start, chunk_end = normalize_char_range(
-        optional_int(row.get("chunk_char_start")),
-        optional_int(row.get("chunk_char_end")),
-    )
-
-    if quote_start is None and quote_end is None:
-        return chunk_start or 0, chunk_end or 0
-    if quote_start is None:
-        quote_start = chunk_start if chunk_start is not None else 0
-    if quote_end is None:
-        quote_end = chunk_end if chunk_end is not None else 0
-    if quote_end < quote_start:
-        quote_start, quote_end = quote_end, quote_start
-    return quote_start, quote_end
+    Falls back to the quote's first eight, last eight, then first five words.
+    Returns (0, 0) when nothing matches.
+    """
+    words = re.findall(r"\w+", quote)
+    for part in (words, words[:8], words[-8:], words[:5]):
+        if len(part) < 3 and part is not words:
+            continue
+        if not part:
+            break
+        match = re.search(r"\W+".join(map(re.escape, part)), full_text, re.IGNORECASE)
+        if match:
+            return match.start(), match.end()
+    return 0, 0
 
 
 def browser_asset_path(local_path: str) -> str:
@@ -180,7 +156,7 @@ def browser_asset_path(local_path: str) -> str:
     return (Path("..") / path).as_posix()
 
 
-def build_commitment(row: dict) -> dict:
+def build_commitment(row: dict, full_text: str) -> dict:
     scores = {}
     rationales = {}
     for dim in SCORE_DIMS:
@@ -190,7 +166,7 @@ def build_commitment(row: dict) -> dict:
         if rationale:
             rationales[short] = rationale
 
-    q_start, q_end = resolve_quote_range(row)
+    q_start, q_end = locate_quote(full_text, row.get("supporting_quote", "") or "")
 
     out = {
         "id": row.get("commitment_id", ""),
@@ -241,7 +217,8 @@ def build_browser_data(doc_rows: dict[str, dict], score_rows: Iterable[dict[str,
     for row in score_rows:
         doc_id = (row.get("doc_id", "") or "").strip()
         if doc_id:
-            grouped[doc_id].append(build_commitment(row))
+            full_text = (doc_rows.get(doc_id) or {}).get("full_text", "") or ""
+            grouped[doc_id].append(build_commitment(row, full_text))
 
     documents = []
     missing_docs = []

@@ -62,11 +62,11 @@ For each retained commitment, we reconstruct a local source-text window containi
 
 ### 10. Analysis-readiness gating
 
-We identify which documents and rows are ready for scoring and which should be reviewed, rerun, or held back. This produces a high-trust analysis-ready subset and a separate set flagged for human review.
+We identify which documents and rows are ready for scoring and which should be reviewed, rerun, or held back. Each commitment also gets a trust tier (high, medium or low) and an ambiguity flag. These are kept as columns rather than used to filter rows, so readers can apply their own threshold.
 
 ### 11. Scoring
 
-We score the analysis-ready commitments against the policy typology using a versioned LLM prompt. Each commitment is scored with its supporting quote and reconstructed policy context as input. The scorer records the prompt version in its output for reproducibility.
+We score the commitments from documents that pass the readiness checks against the policy typology using a versioned LLM prompt. Each commitment is scored with its supporting quote and reconstructed policy context as input. The scorer records the prompt version in its output for reproducibility.
 
 The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0) using the rubric in `methods/prompts/discovery/system_prompt_v11.txt`. The scoring script, including the per-commitment message template, is `code/scoring/score_policies_llm.py`. Its input, one row per published commitment with the reconstructed policy context, is `data/scoring_input.csv`:
 
@@ -121,6 +121,7 @@ The method is deliberately simple and transparent: case-insensitive whole-word m
 
 ## Current scale
 
-- Corpus: 108 manifesto documents
-- Cleaned commitment table: ~30,500 commitment rows with linked source context
-- Scoring-ready high-trust subset: ~6,900 commitments from 32 documents
+- Corpus: 108 manifestos with results, 1945 to 2024
+- Scored commitments (`data/commitments.csv`): 23,026 across all 108 manifestos
+- Trust tiers: 16,786 high, 4,686 medium, 1,554 low; 1,533 commitments are flagged ambiguous
+- The per-manifesto rubric figures use all scored commitments, without filtering by trust tier or ambiguity
