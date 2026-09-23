@@ -1,0 +1,18 @@
+# Adapted from nestauk/ds-cookiecutter. The source corpus and published data are
+# excluded from the text fixers so they are never rewritten.
+exclude: ^(manifestos|text|data)/|^review_browser/.*\.json$
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-toml
+      - id: check-yaml
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7
+    hooks:
+      - id: ruff-format
+      - id: ruff-check
