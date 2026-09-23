@@ -96,7 +96,7 @@ The list of UK manifestos, and the party codes, dates and titles in the `mp_*` c
 
 > Lehmann, Pola / Franzmann, Simon / Al-Gaddooa, Denise / Burst, Tobias / Ivanusch, Christoph / Regel, Sven / Riethmüller, Felicia / Volkens, Andrea / Weßels, Bernhard / Zehnter, Lisa (2025): The Manifesto Data Collection. Manifesto Project (MRG/CMP/MARPOR). Version 2025a. Berlin: Wissenschaftszentrum Berlin für Sozialforschung (WZB) / Göttingen: Institut für Demokratieforschung (IfDem). https://doi.org/10.25522/manifesto.mpds.2025a
 
-The manifesto files themselves were not obtained from the Manifesto Project. They were collected from party websites and public archives, chiefly Political Science Resources (via the Internet Archive), [CAIN](https://cain.ulster.ac.uk/) at Ulster University, [Lexical Analysis Software](https://lexically.net/) and [UCREL](https://ucrel.lancs.ac.uk/) at Lancaster University. The source of each file is recorded in `data/catalog.csv` (`source_url`, `archive_url`, `source_type`).
+The manifesto files themselves were not obtained from the Manifesto Project. They were collected from party websites and public archives, chiefly Political Science Resources (copies saved by the Internet Archive between 2010 and 2015; the website has since changed owner), [CAIN](https://cain.ulster.ac.uk/) at Ulster University, [Lexical Analysis Software](https://lexically.net/) and [UCREL](https://ucrel.lancs.ac.uk/) at Lancaster University. The source of each file is recorded in `data/catalog.csv` (`source_url`, `archive_url`, `source_type`).
 
 ## Licence
 
