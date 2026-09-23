@@ -6,7 +6,7 @@ The project has two parts. First, we count words and phrases associated with lon
 
 ## Key outputs
 
-- **[`data/commitments.csv`](data/commitments.csv)** - 23,026 individual policy commitments extracted from the corpus, each scored across six policy dimensions (prevention, tangible investment, intangible investment, risk/resilience, current consumption, constitutional change) with supporting quotes and confidence signals.
+- **[`data/commitments.csv`](data/commitments.csv)** - 23,026 individual policy commitments extracted from the corpus, each scored across six policy dimensions (prevention, physical investment, knowledge investment, risk/resilience, current consumption, constitutional change) with supporting quotes and confidence signals.
 - **[`data/nlp_profiles.csv`](data/nlp_profiles.csv)** - word-count language profiles for each manifesto: hits and mentions per 1,000 words across ten curated word groups.
 - **[`figures/`](figures/)** - charts covering party rankings, historical trends, and a 2024 manifesto scorecard.
 - **[`manifestos/`](manifestos/)** - the source corpus: 108 party manifestos as PDFs, HTML, and plain text.

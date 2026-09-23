@@ -384,8 +384,8 @@ def chart_year_scorecard(df: pd.DataFrame, year: int, output_dir: Path) -> None:
 
 RUBRIC_DIMENSIONS = [
     ("prevention", "Prevention"),
-    ("tangible_investment", "Tangible\ninvestment"),
-    ("intangible_investment", "Intangible\ninvestment"),
+    ("tangible_investment", "Physical\ninvestment"),
+    ("intangible_investment", "Knowledge\ninvestment"),
     ("risk_resilience", "Risk &\nresilience"),
     ("current_consumption", "Current\nconsumption"),
     ("constitutional_change", "Constitutional\nchange"),
