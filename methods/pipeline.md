@@ -121,7 +121,7 @@ The method is deliberately simple and transparent: case-insensitive whole-word m
 
 ## Current scale
 
-- Corpus: 108 manifestos with results, 1945 to 2024
+- Corpus: 108 manifestos, 1945 to 2024. Manifestos we could not source are listed in `data/catalog-missing.csv`
 - Scored commitments (`data/commitments.csv`): 23,026 across all 108 manifestos
 - Trust tiers: 16,786 high, 4,686 medium, 1,554 low; 1,533 commitments are flagged ambiguous
 - The per-manifesto rubric figures use all scored commitments, without filtering by trust tier or ambiguity
