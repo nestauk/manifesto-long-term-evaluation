@@ -69,7 +69,7 @@ uv run code/build_nlp_highlights.py          # long-term-language mode (review_b
 
 ## Data sources
 
-The list of UK manifestos, and the party codes, dates and titles in the `mp_*` columns of `data/catalog.csv` and `data/documents.csv`, come from the Manifesto Project (document list from the [Manifesto Corpus](https://manifesto-project.wzb.eu/information/documents/corpus), version 2025-1, downloaded March 2026). `data/catalog-missing.csv` lists Manifesto Project entries we could not source. Please cite:
+The list of UK manifestos, and the party codes, dates and titles in the `mp_*` columns of `data/catalog.csv` and `data/documents.csv`, come from the Manifesto Project (document list from the [Manifesto Corpus](https://manifesto-project.wzb.eu/information/documents/corpus), version 2025-1, downloaded March 2026). Please cite:
 
 > Lehmann, Pola / Franzmann, Simon / Al-Gaddooa, Denise / Burst, Tobias / Ivanusch, Christoph / Regel, Sven / Riethmüller, Felicia / Volkens, Andrea / Weßels, Bernhard / Zehnter, Lisa (2025): The Manifesto Data Collection. Manifesto Project (MRG/CMP/MARPOR). Version 2025a. Berlin: Wissenschaftszentrum Berlin für Sozialforschung (WZB) / Göttingen: Institut für Demokratieforschung (IfDem). https://doi.org/10.25522/manifesto.mpds.2025a
 
