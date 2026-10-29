@@ -6,21 +6,22 @@ The project has two parts. First, we count words and phrases associated with lon
 
 ## Key outputs
 
-- **[`data/commitments.csv`](data/commitments.csv)** - 23,026 individual policy commitments extracted from the corpus, each scored across six policy dimensions (prevention, physical investment, knowledge investment, risk/resilience, current consumption, constitutional change) with supporting quotes and confidence signals.
+- **[`data/commitments.csv`](data/commitments.csv)** - 23,026 individual policy commitments extracted from the corpus, each scored across six policy dimensions (prevention, physical investment, knowledge investment, risk/resilience, current consumption, constitutional change) with the reasons for each score and confidence signals. Each commitment's place in its manifesto is given as a PDF page (`pdf_page`, for PDF sources; it can be a page or two out) and as how far through the document it appears (`position_pct`), so it can be looked up in the source listed in `data/catalog.csv`.
 - **[`data/nlp_profiles.csv`](data/nlp_profiles.csv)** - word-count language profiles for each manifesto: hits and mentions per 1,000 words across ten curated word groups.
 - **[`figures/`](figures/)** - charts covering party rankings, historical trends, and a 2024 manifesto scorecard.
-- **[`manifestos/`](manifestos/)** - the source corpus: 108 party manifestos as PDFs, HTML, and plain text.
+
+## Manifesto texts
+
+This repository publishes our methods and results, not the manifestos themselves: by agreement with the Manifesto Project, the manifesto texts and quotes from them are not included. Every manifesto we used is listed in [`data/catalog.csv`](data/catalog.csv) with its source, so the corpus can be rebuilt to reproduce our results (see [Reproducing the outputs](#reproducing-the-outputs)).
 
 ## Repository layout
 
 ```
-manifestos/       source corpus (PDF, HTML, txt)
-text/             cleaned plain text of each manifesto, used for the word counts
 data/
   commitments.csv       scored policy commitments (headline dataset)
-  scoring_input.csv     input to the LLM scorer (commitments with policy context)
+  scoring_input.csv     the commitments sent to the LLM scorer, with their pipeline metadata
   nlp_profiles.csv      word-count language profiles (per-1,000-word densities)
-  documents.csv         per-document metadata + extracted full text
+  documents.csv         per-document metadata (length, extraction method, checksum)
   catalog.csv           corpus provenance (source URLs, retrieval method, quality)
   catalog-missing.csv   manifestos listed in the Manifesto Project database that we could not source
 figures/          charts (PNG)
@@ -28,8 +29,7 @@ tables/           supporting tables (TSV)
 methods/
   pipeline.md     end-to-end methodology
   prompts/        LLM system prompts used for extraction and scoring
-code/             the commitments pipeline as used (code/pipeline/), the scorer (code/scoring/), the NLP profiles, and the review browser data builders
-review_browser/   a self-contained web app for browsing commitments alongside the source text
+code/             the commitments pipeline as used (code/pipeline/), the scorer (code/scoring/), and the NLP profiles
 pyproject.toml    Python dependencies (locked in uv.lock)
 ```
 
@@ -53,32 +53,19 @@ uv run pre-commit install
 
 Run these from the repo root after `uv sync`. Only the scorer needs an API key.
 
+First rebuild the corpus. Download each manifesto in `data/catalog.csv` from its `source_url` (or `archive_url`), convert it to plain text, and save it as `text/<party_slug>/<file name>.txt`, where the file name is the one in the catalog's `local_path` without its extension. `data/documents.csv` records how we extracted each text (`extraction_method`) and its length, so you can check your copy against ours.
+
 | Output | Command | Notes |
 |---|---|---|
-| Word-count profiles | `uv run code/nlp/profile_manifestos_nlp.py` | Reads `data/documents.csv` and `text/`, writes to `outputs/nlp/`. The profile table has the same values as `data/nlp_profiles.csv` |
+| Word-count profiles | `uv run code/nlp/profile_manifestos_nlp.py` | Reads `data/documents.csv` and `text/`, writes to `outputs/nlp/`. With the same texts, the profile table has the same values as `data/nlp_profiles.csv` |
 | Figures | `uv run code/nlp/plot_manifestos_nlp.py` | Overwrites `figures/nlp/` by default. Use `--output-dir <dir>` to write elsewhere |
-| Review browser data | `uv run code/build_review_browser_data.py`<br>`uv run code/build_nlp_highlights.py` | Rebuild `review_browser/data.json` and `review_browser/nlp_hits.json` from the CSVs in `data/` |
-| Commitment scores | `uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv --output-prefix <name>` | Needs `OPENAI_API_KEY`. Writes to `outputs/scores/`. Calls the API once per commitment (23,026 rows), so add `--max-rows 20` to try it first |
+| Commitment scores | `uv run code/scoring/score_policies_llm.py --input <file> --output-prefix <name>` | Needs `OPENAI_API_KEY`. Writes to `outputs/scores/`. Calls the API once per commitment (23,026 rows), so add `--max-rows 20` to try it first |
+
+The scorer reads each commitment with its supporting quote and the surrounding policy context, both taken from the manifesto text, so its input file is not published here. `data/scoring_input.csv` lists the commitments that were scored. The quote and context for each one come from the pipeline in [`code/pipeline/`](code/pipeline/) (the context from [`add_policy_context.py`](code/pipeline/add_policy_context.py)); add them as `supporting_quote` and `policy_context` columns to make the scorer's input file.
 
 The scorer's defaults are the settings behind the published data: prompt v11, `gpt-5-mini`, temperature 0. `data/scoring_input.csv` holds the 23,026 published commitments. Commitments whose quote could not be matched to the source text were not scored in the published run (the scorer's `--only-valid` option has the same effect), and they are already left out of this file.
 
 The earlier stages of the commitments pipeline (stages 3-9 in [`methods/pipeline.md`](methods/pipeline.md)) are in [`code/pipeline/`](code/pipeline/). They are published exactly as used, so the extraction and filtering rules can be read, but they do not run from this repo: their paths point at the working folder they were written in. `data/scoring_input.csv` is their output, less the rows described in the scoring section of `methods/pipeline.md`.
-
-## Review browser
-
-A small static web app with two modes:
-
-- **Policy commitments** - click through each manifesto and inspect every scored commitment next to its supporting quote in the original document.
-- **Long-term language** - toggle the ten word groups that drive `data/nlp_profiles.csv` and see every match highlighted in the source text. Multiple groups can be on at once, each in its own colour.
-
-**Hosted**: <https://nestauk.github.io/manifesto-long-term-evaluation/review_browser/>
-
-To run it locally instead:
-
-```bash
-python3 -m http.server 8000
-# then open http://localhost:8000/review_browser/
-```
 
 ## Data sources
 
@@ -90,4 +77,4 @@ The manifesto files themselves were not obtained from the Manifesto Project. The
 
 ## Licence
 
-Code and derived data are released under the [MIT Licence](LICENSE). The source manifestos in `manifestos/` and their cleaned text in `text/` remain the copyright of the parties that published them and are included for research use.
+Code and derived data are released under the [MIT Licence](LICENSE). The manifestos themselves remain the copyright of the parties that published them.

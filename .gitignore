@@ -8,3 +8,6 @@ __pycache__/
 _local/
 outputs/
 .venv/
+manifestos/
+text/
+review_browser/
