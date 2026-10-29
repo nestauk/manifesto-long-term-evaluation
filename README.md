@@ -57,7 +57,7 @@ First rebuild the corpus. Download each manifesto in `data/catalog.csv` from its
 
 | Output | Command | Notes |
 |---|---|---|
-| Word-count profiles | `uv run code/nlp/profile_manifestos_nlp.py` | Reads `data/documents.csv` and `text/`, writes to `outputs/nlp/`. With the same texts, the profile table has the same values as `data/nlp_profiles.csv` |
+| Word-count profiles | `uv run code/nlp/profile_manifestos_nlp.py` | Reads `data/documents.csv` and `text/`, writes to `outputs/nlp/`. With the same texts, the profile table has the same counts as `data/nlp_profiles.csv` (it also has an example passage per word group, which is not published here) |
 | Figures | `uv run code/nlp/plot_manifestos_nlp.py` | Overwrites `figures/nlp/` by default. Use `--output-dir <dir>` to write elsewhere |
 | Commitment scores | `uv run code/scoring/score_policies_llm.py --input <file> --output-prefix <name>` | Needs `OPENAI_API_KEY`. Writes to `outputs/scores/`. Calls the API once per commitment (23,026 rows), so add `--max-rows 20` to try it first |
 
