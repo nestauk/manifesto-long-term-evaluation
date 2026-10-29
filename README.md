@@ -12,7 +12,7 @@ The project has two parts. First, we count words and phrases associated with lon
 
 ## Manifesto texts
 
-This repository publishes our methods and results, not the manifestos themselves: by agreement with the Manifesto Project, the manifesto texts and quotes from them are not included. Every manifesto we used is listed in [`data/catalog.csv`](data/catalog.csv) with its source, so the corpus can be rebuilt to reproduce our results (see [Reproducing the outputs](#reproducing-the-outputs)).
+This repository publishes our methods and results, not the manifestos themselves: by agreement with the Manifesto Project, the manifesto texts are not included, and quotes from them appear only as short phrases in the reasons given for each score. Every manifesto we used is listed in [`data/catalog.csv`](data/catalog.csv) with its source, so the corpus can be rebuilt to reproduce our results (see [Reproducing the outputs](#reproducing-the-outputs)).
 
 ## Repository layout
 
@@ -61,7 +61,7 @@ First rebuild the corpus. Download each manifesto in `data/catalog.csv` from its
 | Figures | `uv run code/nlp/plot_manifestos_nlp.py` | Overwrites `figures/nlp/` by default. Use `--output-dir <dir>` to write elsewhere |
 | Commitment scores | `uv run code/scoring/score_policies_llm.py --input <file> --output-prefix <name>` | Needs `OPENAI_API_KEY`. Writes to `outputs/scores/`. Calls the API once per commitment (23,026 rows), so add `--max-rows 20` to try it first |
 
-The scorer reads each commitment with its supporting quote and the surrounding policy context, both taken from the manifesto text, so its input file is not published here. `data/scoring_input.csv` lists the commitments that were scored. The quote and context for each one come from the pipeline in [`code/pipeline/`](code/pipeline/) (the context from [`add_policy_context.py`](code/pipeline/add_policy_context.py)); add them as `supporting_quote` and `policy_context` columns to make the scorer's input file.
+The scorer reads each commitment as quoted from the manifesto (`commitment_text` and `supporting_quote`, which are the same text) together with the surrounding policy context, so its input file is not published here and the scorer cannot be re-run from this repository alone. `data/scoring_input.csv` lists the commitments that were scored, without that text. The quote and context for each one were produced by the pipeline in [`code/pipeline/`](code/pipeline/) (the context by [`add_policy_context.py`](code/pipeline/add_policy_context.py)). The full scorer input is available from Nesta on request.
 
 The scorer's defaults are the settings behind the published data: prompt v11, `gpt-5-mini`, temperature 0. `data/scoring_input.csv` holds the 23,026 published commitments. Commitments whose quote could not be matched to the source text were not scored in the published run (the scorer's `--only-valid` option has the same effect), and they are already left out of this file.
 

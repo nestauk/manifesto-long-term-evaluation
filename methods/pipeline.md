@@ -64,10 +64,10 @@ We identify which documents and rows are ready for scoring and which should be r
 
 We score every commitment that survives screening and deduplication, from all 108 documents, against the policy typology using a versioned LLM prompt. The document readiness status from the previous stage is kept as a column (`doc_status`) rather than used as a filter. Each commitment is scored with its supporting quote and reconstructed policy context as input. The scorer records the prompt version in its output for reproducibility.
 
-The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0) using the rubric in `methods/prompts/discovery/system_prompt_v11.txt`. The scoring script, including the per-commitment message template, is `code/scoring/score_policies_llm.py`. Its input, one row per published commitment with the reconstructed policy context, is `data/scoring_input.csv`:
+The published `data/commitments.csv` was scored with `gpt-5-mini` (temperature 0) using the rubric in `methods/prompts/discovery/system_prompt_v11.txt`. The scoring script, including the per-commitment message template, is `code/scoring/score_policies_llm.py`. Its input has one row per published commitment, with the commitment as quoted from the manifesto and the reconstructed policy context. Because that text comes from the manifestos, the input is not published; `data/scoring_input.csv` lists the same commitments without it. With the full input, the scorer runs as:
 
 ```bash
-uv run code/scoring/score_policies_llm.py --input data/scoring_input.csv
+uv run code/scoring/score_policies_llm.py --input <full scorer input>
 ```
 
 Two groups of commitments are not in the published data. 4,630 commitments whose extracted quote could not be matched to the source text were not scored (the scorer's `--only-valid` option has the same effect). 758 commitments failed the scorer's validation checks on every retry and have no score. That leaves 23,026 of the 28,414 commitments that survived screening and deduplication.
