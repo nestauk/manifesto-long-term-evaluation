@@ -98,6 +98,23 @@ DEFINITE_COMMITMENT_PATTERNS = [
     r"\bwill\s+establish\b",
     r"\bcommit(?:ted|ment)?\s+to\b",
     r"\bguarantee(?:d|s)?\b",
+    # Older pledge wording. Before the 1980s most firm pledges were "we
+    # shall" or "a Labour Government will", which the list above misses
+    # (in the 1950s "we shall" is ~7x as common as everything above).
+    # Checked on random samples: ~99% of party-name matches are the
+    # manifesto's own party pledging, not attacks on opponents.
+    r"\bwe\s+shall\b",
+    r"\b(?:labour|conservatives?|tor(?:y|ies)|liberals?|liberal\s+democrats?|lib\s+dems?"
+    r"|snp|plaid\s+cymru|alliance|greens|ukip|reform\s+uk|dup|sdlp|sinn\s+f[eé]in|uup|tuv)"
+    r"(?:\s+government(?:s)?)?\s+(?:will|shall)\b",
+    # "The Conservative Party will", "the Green Party will". Bare "green" and
+    # "reform" are left out above because they are also ordinary words.
+    r"\b(?:labour|conservative|liberal|liberal\s+democrat|alliance|green|brexit)\s+party"
+    r"\s+(?:will|shall)\b",
+    r"\bwe\s+intend\s+to\b",
+    r"\bwe\s+are\s+determined\s+to\b",
+    r"\bwe\s+propose\s+to\b",
+    r"\bwe\s+(?:pledge|promise|undertake)\s+(?:to|not|that|ourselves)\b",
 ]
 
 ASPIRATIONAL_PATTERNS = [

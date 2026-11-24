@@ -106,13 +106,15 @@ The extraction system prompt is in `methods/prompts/extraction/`, and the code f
 Separately from the extraction and scoring pipeline, we run a deterministic word-count analysis across the full corpus. Each manifesto is profiled against ten manually curated word groups relevant to long-term policy orientation:
 
 - **Long-term / short-term**  -  e.g. "long-term", "future generations" vs "immediately", "this year"
-- **Definite commitment / aspirational**  -  "we will", "guarantee" vs "aim to", "would", "may"
+- **Definite commitment / aspirational**  -  "we will", "we shall", "a Labour Government will", "UKIP will", "we intend to", "guarantee" vs "aim to", "would", "may"
 - **Investment / immediate relief**  -  "infrastructure", "R&D" vs "boost", "cut taxes"
 - **Prevention and resilience**  -  "early intervention", "safeguard", "preparedness"
 - **Intergenerational**  -  "children", "future generations", "legacy"
 - **Institutional**  -  "statutory", "binding", "independent commission", "targets"
 
 The method is deliberately simple and transparent: case-insensitive whole-word matching, with each group reported as a raw hit count and as mentions per 1,000 words. Page furniture is stripped first: any line that recurs four or more times in a document (running headers, slogans, bullet glyphs left by PDF/HTML extraction) is counted once. There are no weights or composite scores, and no LLM is involved. The word lists were reviewed against 1950s-60s manifestos so older phrasing ("stop-go", "reconstruction", "national plan") is credited.
+
+The definite-commitment list was checked for coverage, because firm pledges changed wording over time: before the 1980s they were mostly "we shall" or "a Labour Government will", later "we will". We listed every word that follows "we", a party name or "the Government" across the corpus, decade by decade, and added the pledge forms the list missed: "we shall", "<party> (Government|Party) will/shall" for every party in the corpus, "we intend to", "we are determined to", "we propose to" and "we pledge/promise/undertake". About 99% of the party-name matches are the party's own pledges rather than claims about opponents. Bare "shall" is left out because it is mostly legal wording. One form is still not counted: "will be [done]" with no "we" (as in "a new council will be set up"). A hand check of 30 random examples found about half are pledges, at a similar rate before and after 1980, so counting them would cut the list's accuracy without changing the trend. Judgement phrases such as "we must", "we would" and "we want to" are not counted as definite.
 
 
 

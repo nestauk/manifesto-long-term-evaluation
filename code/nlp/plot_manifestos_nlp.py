@@ -194,7 +194,7 @@ def chart_decade_trends(df: pd.DataFrame, output_dir: Path) -> None:
         linewidth=3,
         marker="o",
         markersize=6,
-        label="Definite pledges (“we will …”)",
+        label="Definite pledges (“we will”, “we shall” …)",
     )
     ax.plot(
         grouped.index,
